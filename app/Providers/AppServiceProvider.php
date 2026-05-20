@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Route::model('requerimiento', Requirement::class);
         Route::model('sprint',        Sprint::class);
         Route::model('cotizacion',    Quote::class);
-        Route::model('factura',       Invoice::class);
+        Route::bind('factura', fn($value) => Invoice::withTrashed()->findOrFail($value));
         Route::model('pago',          QuotePayment::class);
     }
 }

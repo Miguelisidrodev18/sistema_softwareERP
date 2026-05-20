@@ -30,6 +30,12 @@
                 <option value="rechazado">Rechazado</option>
                 <option value="error">Error</option>
             </select>
+            <label class="flex items-center gap-1.5 cursor-pointer shrink-0 select-none">
+                <input type="checkbox" wire:model.live="conEliminados"
+                       class="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-sky-500
+                              focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                <span class="text-xs text-slate-500">Eliminados</span>
+            </label>
         </div>
     </div>
 
@@ -48,16 +54,19 @@
             </thead>
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($facturas as $f)
-                <tr class="hover:bg-slate-800/30 transition-colors group">
+                <tr class="hover:bg-slate-800/30 transition-colors group {{ $f->trashed() ? 'opacity-50' : '' }}">
                     <td class="px-5 py-3.5">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md
                                 {{ $f->esFactura() ? 'bg-sky-500/10 text-sky-400' : 'bg-violet-500/10 text-violet-400' }}">
                                 {{ $f->tipoLabel() }}
                             </span>
-                            <p class="text-xs font-bold font-mono text-white">
+                            <p class="text-xs font-bold font-mono {{ $f->trashed() ? 'line-through text-slate-500' : 'text-white' }}">
                                 {{ $f->numero_completo ?? ($f->serie . '-????') }}
                             </p>
+                            @if($f->trashed())
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-400">Eliminado</span>
+                            @endif
                         </div>
                         @if($f->quote)
                         <p class="text-[10px] text-slate-600 mt-0.5">Cot: {{ $f->quote->numero }}</p>
