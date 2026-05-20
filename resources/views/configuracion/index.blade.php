@@ -62,6 +62,7 @@
                 ['empresa', 'Empresa',     'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'],
                 ['logos',   'Logos',       'm2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'],
                 ['sunat',   'SUNAT',       'M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'],
+                ['series',  'Series',      'M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z'],
                 ['pfx',     'Certificado', 'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z'],
             ] as [$key, $label, $icon])
             <button
@@ -319,20 +320,6 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Serie boleta</label>
-                        <input type="text" name="serie_boleta" class="input-dark font-mono"
-                               maxlength="10" placeholder="B001"
-                               value="{{ old('serie_boleta', $config->serie_boleta ?? 'B001') }}">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Serie factura</label>
-                        <input type="text" name="serie_factura" class="input-dark font-mono"
-                               maxlength="10" placeholder="F001"
-                               value="{{ old('serie_factura', $config->serie_factura ?? 'F001') }}">
-                    </div>
-
-                    <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1.5">URL Nubefact OSE</label>
                         <input type="url" name="nubefact_url" class="input-dark font-mono text-xs"
                                value="{{ old('nubefact_url', $config->nubefact_url ?? 'https://api.nubefact.com/api/v1') }}">
@@ -354,7 +341,122 @@
                 </div>
             </div>
 
-            {{-- ══ TAB 4: CERTIFICADO PFX ══════════════════════════════ --}}
+            {{-- ══ TAB 4: SERIES Y CORRELATIVOS ═══════════════════════ --}}
+            <div x-show="tab === 'series'"
+                 x-data="{
+                     apiStatus: null,
+                     checking: false,
+                     async checkApi() {
+                         this.checking = true; this.apiStatus = null;
+                         try {
+                             const r = await fetch('/api/sunat-api-status', {
+                                 headers: { 'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
+                             });
+                             this.apiStatus = await r.json();
+                         } catch(e) {
+                             this.apiStatus = { connected: false, error: 'Sin conexión con la API' };
+                         }
+                         this.checking = false;
+                     }
+                 }"
+                 class="space-y-5">
+
+                {{-- Series configuradas --}}
+                <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6">
+                    <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>
+                        </svg>
+                        Series de comprobantes
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1.5">Serie boleta</label>
+                            <input type="text" name="serie_boleta" class="input-dark font-mono uppercase"
+                                   maxlength="4" placeholder="B001"
+                                   value="{{ old('serie_boleta', $config->serie_boleta ?? 'B001') }}">
+                            <p class="text-xs text-slate-600 mt-1">Formato: B + 3 dígitos (B001, B002…)</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1.5">Serie factura</label>
+                            <input type="text" name="serie_factura" class="input-dark font-mono uppercase"
+                                   maxlength="4" placeholder="F001"
+                                   value="{{ old('serie_factura', $config->serie_factura ?? 'F001') }}">
+                            <p class="text-xs text-slate-600 mt-1">Formato: F + 3 dígitos (F001, F002…)</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Estado de la API SUNAT externa --}}
+                <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/>
+                            </svg>
+                            API de Facturación SUNAT
+                        </h3>
+                        <button type="button" @click="checkApi()"
+                                :disabled="checking"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                                       text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition-colors
+                                       disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-3.5 h-3.5" :class="checking ? 'animate-spin' : ''"
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                            </svg>
+                            <span x-text="checking ? 'Verificando...' : 'Verificar conexión'"></span>
+                        </button>
+                    </div>
+
+                    {{-- Datos de conexión actuales --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <div class="bg-slate-800/40 border border-slate-700/40 rounded-xl px-4 py-3">
+                            <p class="text-[10px] text-slate-600 mb-1 uppercase tracking-wider">URL de la API</p>
+                            <p class="text-xs font-mono text-slate-300">{{ config('services.sunat_api.url', '—') }}</p>
+                        </div>
+                        <div class="bg-slate-800/40 border border-slate-700/40 rounded-xl px-4 py-3">
+                            <p class="text-[10px] text-slate-600 mb-1 uppercase tracking-wider">Company ID</p>
+                            <p class="text-xs font-mono text-slate-300">{{ config('services.sunat_api.company_id', '—') }}</p>
+                        </div>
+                        <div class="bg-slate-800/40 border border-slate-700/40 rounded-xl px-4 py-3">
+                            <p class="text-[10px] text-slate-600 mb-1 uppercase tracking-wider">Branch ID</p>
+                            <p class="text-xs font-mono text-slate-300">{{ config('services.sunat_api.branch_id', '—') }}</p>
+                        </div>
+                    </div>
+
+                    {{-- Resultado del ping --}}
+                    <div x-show="apiStatus !== null">
+                        <div x-show="apiStatus?.connected"
+                             class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
+                            <p class="text-xs text-emerald-300 font-medium">API conectada y respondiendo correctamente</p>
+                        </div>
+                        <div x-show="!apiStatus?.connected"
+                             class="flex items-start gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                            <span class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0 mt-1"></span>
+                            <div>
+                                <p class="text-xs text-red-300 font-medium">API no accesible</p>
+                                <p class="text-[10px] text-red-400/70 mt-0.5" x-text="apiStatus?.error ?? 'Verifica que la API esté corriendo'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Instrucciones setup --}}
+                    <div class="mt-4 bg-slate-800/30 border border-slate-700/30 rounded-xl p-4">
+                        <p class="text-xs font-semibold text-slate-400 mb-2">Setup inicial de la API</p>
+                        <ol class="space-y-1.5 text-xs text-slate-500 list-decimal list-inside">
+                            <li>Corre la API: <code class="font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[10px]">php artisan serve --port=8001</code> (en la carpeta de la API)</li>
+                            <li>Login: <code class="font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[10px]">POST /api/auth/login</code> → guarda el token en <code class="font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[10px]">.env SUNAT_API_TOKEN</code></li>
+                            <li>Crea la empresa: <code class="font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[10px]">POST /api/v1/companies/complete</code> con el RUC de la empresa</li>
+                            <li>Actualiza <code class="font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[10px]">SUNAT_API_COMPANY_ID</code> y <code class="font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[10px]">SUNAT_API_BRANCH_ID</code> en el <code class="font-mono">.env</code></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ══ TAB 5: CERTIFICADO PFX ══════════════════════════════ --}}
             <div x-show="tab === 'pfx'" class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6">
 
                 <div class="bg-amber-500/5 border border-amber-500/20 rounded-xl px-4 py-3 flex items-start gap-3 mb-5">

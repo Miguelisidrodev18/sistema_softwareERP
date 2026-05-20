@@ -171,6 +171,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/usuarios',   fn() => $proximamente('Usuarios', 1))->name('usuarios.index');
 });
 
+// ── Estado de la API SUNAT externa ──────────────────────────────────
+Route::middleware(['auth'])->get('/api/sunat-api-status', function () {
+    $service = app(\App\Services\SunatService::class);
+    if (!$service->estaConfigurada()) {
+        return response()->json(['connected' => false, 'error' => 'SUNAT_API_TOKEN no configurado en .env']);
+    }
+    $ok = $service->ping();
+    return response()->json([
+        'connected'  => $ok,
+        'company_id' => config('services.sunat_api.company_id'),
+        'branch_id'  => config('services.sunat_api.branch_id'),
+        'error'      => $ok ? null : 'La API no responde. Verifica que esté corriendo en ' . config('services.sunat_api.url'),
+    ]);
+});
+
 // ── Proxy consulta DNI / RUC (token queda server-side) ──────────────
 Route::middleware(['auth'])->get('/api/consulta-documento', function (Request $request) {
     $tipo   = strtoupper($request->input('tipo', ''));

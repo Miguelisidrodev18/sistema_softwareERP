@@ -35,9 +35,11 @@ class FacturaController extends Controller
             ->orderByDesc('created_at')
             ->get(['id', 'numero', 'client_id', 'total', 'moneda']);
 
-        $config  = EmpresaConfig::first();
-        $igvPct  = $config?->igv_porcentaje ?? 18;
-        $apiOk   = $this->sunat->estaConfigurada();
+        $config      = EmpresaConfig::first();
+        $igvPct      = $config?->igv_porcentaje ?? 18;
+        $serieFactura = $config?->serie_factura ?? 'F001';
+        $serieBoleta  = $config?->serie_boleta  ?? 'B001';
+        $apiOk        = $this->sunat->estaConfigurada();
 
         // Pre-llenar desde cotización / cuota
         $preQuote   = null;
@@ -73,6 +75,7 @@ class FacturaController extends Controller
 
         return view('facturacion.create', compact(
             'clientes', 'cotizaciones', 'config', 'igvPct', 'apiOk',
+            'serieFactura', 'serieBoleta',
             'preQuote', 'prePago', 'preItems'
         ));
     }

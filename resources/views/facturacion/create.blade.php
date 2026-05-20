@@ -106,13 +106,18 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    {{-- Serie (auto según tipo) --}}
+                    {{-- Serie (auto según tipo, desde configuración) --}}
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1.5">Serie</label>
                         <input type="text" name="serie"
-                               :value="tipo === '01' ? 'F001' : 'B001'"
+                               :value="tipo === '01' ? '{{ $serieFactura }}' : '{{ $serieBoleta }}'"
                                class="input-dark font-mono"
                                readonly>
+                        <p class="text-[10px] text-slate-600 mt-1">
+                            Factura: <span class="font-mono">{{ $serieFactura }}</span> ·
+                            Boleta: <span class="font-mono">{{ $serieBoleta }}</span>
+                            <a href="{{ route('configuracion.index') }}?tab=series" class="text-sky-500 hover:underline ml-1">cambiar</a>
+                        </p>
                     </div>
 
                     {{-- Cotización de referencia --}}
