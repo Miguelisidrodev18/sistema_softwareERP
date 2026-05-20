@@ -86,6 +86,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:proyectos.eliminar')->name('proyectos.destroy');
     Route::patch('/proyectos/{proyecto}/fases/{fase}', [ProyectoController::class, 'updatePhase'])
         ->middleware('permission:proyectos.editar')->name('proyectos.fases.update');
+    Route::patch('/proyectos/{proyecto}/checklist/{index}', [ProyectoController::class, 'toggleChecklist'])
+        ->middleware('permission:proyectos.editar')->name('proyectos.checklist.toggle');
+    Route::patch('/proyectos/{proyecto}/notas', [ProyectoController::class, 'updateNotas'])
+        ->middleware('permission:proyectos.editar')->name('proyectos.notas.update');
 
     // Requerimientos (anidados bajo proyecto)
     Route::get('/proyectos/{proyecto}/requerimientos', [RequerimientoController::class, 'index'])

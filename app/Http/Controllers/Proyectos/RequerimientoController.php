@@ -29,8 +29,14 @@ class RequerimientoController extends Controller
     public function update(Project $proyecto, Requirement $requerimiento)
     {
         $data = request()->validate([
-            'status'   => ['required', 'in:' . implode(',', Requirement::STATUSES)],
-            'priority' => ['nullable', 'in:' . implode(',', Requirement::PRIORITIES)],
+            'title'        => ['sometimes', 'required', 'string', 'max:200'],
+            'description'  => ['nullable', 'string'],
+            'type'         => ['sometimes', 'required', 'in:' . implode(',', Requirement::TYPES)],
+            'priority'     => ['sometimes', 'required', 'in:' . implode(',', Requirement::PRIORITIES)],
+            'status'       => ['sometimes', 'required', 'in:' . implode(',', Requirement::STATUSES)],
+            'assigned_to'  => ['nullable', 'exists:users,id'],
+            'story_points' => ['nullable', 'integer', 'in:1,2,3,5,8,13,21'],
+            'phase_id'     => ['nullable', 'exists:project_phases,id'],
         ]);
 
         $requerimiento->update($data);

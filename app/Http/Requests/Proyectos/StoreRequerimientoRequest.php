@@ -20,7 +20,8 @@ class StoreRequerimientoRequest extends FormRequest
             'type'        => ['required', Rule::in(Requirement::TYPES)],
             'priority'    => ['required', Rule::in(Requirement::PRIORITIES)],
             'status'      => ['required', Rule::in(Requirement::STATUSES)],
-            'assigned_to' => ['nullable', 'exists:users,id'],
+            'assigned_to'  => ['nullable', 'exists:users,id'],
+            'story_points' => ['nullable', 'integer', 'in:1,2,3,5,8,13,21'],
         ];
     }
 }

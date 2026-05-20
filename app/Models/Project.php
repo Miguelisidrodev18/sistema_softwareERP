@@ -13,6 +13,7 @@ class Project extends Model
 
     protected $fillable = [
         'client_id', 'quote_id', 'name', 'description',
+        'checklist', 'notas_reunion',
         'status', 'progress', 'start_date', 'end_date',
         'responsible_user_id', 'created_by',
     ];
@@ -20,12 +21,26 @@ class Project extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date'   => 'date',
+        'checklist'  => 'array',
         'deleted_at' => 'datetime',
     ];
 
     const ESTADOS = [
         'planificado', 'en_curso', 'pausado',
         'en_revision', 'entregado', 'cancelado',
+    ];
+
+    const PARTES_DEFAULT = [
+        'Levantamiento de requerimientos',
+        'Diseño de base de datos',
+        'Diseño de interfaces (mockups)',
+        'Desarrollo backend',
+        'Desarrollo frontend',
+        'Pruebas funcionales',
+        'Revisión con el cliente',
+        'Despliegue en producción',
+        'Capacitación al cliente',
+        'Documentación técnica',
     ];
 
     // ── Relaciones ───────────────────────────────────────────────────
@@ -53,6 +68,11 @@ class Project extends Model
     public function requirements(): HasMany
     {
         return $this->hasMany(Requirement::class);
+    }
+
+    public function sprints(): HasMany
+    {
+        return $this->hasMany(Sprint::class)->orderByDesc('created_at');
     }
 
     // ── Scopes ───────────────────────────────────────────────────────
@@ -96,6 +116,16 @@ class Project extends Model
             'cancelado'   => 'Cancelado',
             default       => $this->status,
         };
+    }
+
+    public function checklistCompletados(): int
+    {
+        return collect($this->checklist ?? [])->where('completado', true)->count();
+    }
+
+    public function checklistTotal(): int
+    {
+        return count($this->checklist ?? []);
     }
 
     public function recalcularProgreso(): void

@@ -241,6 +241,130 @@
         </div>
     </div>
 
+    {{-- ── Checklist de entregables ────────────────────────────────── --}}
+    @if(!empty($proyecto->checklist))
+    @php
+        $completados = $proyecto->checklistCompletados();
+        $total       = $proyecto->checklistTotal();
+        $pctCheck    = $total > 0 ? round(($completados / $total) * 100) : 0;
+    @endphp
+    <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6 mb-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white">Entregables del proyecto</h3>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-mono text-slate-500">{{ $completados }}/{{ $total }}</span>
+                <div class="w-24 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500
+                        {{ $pctCheck >= 100 ? 'bg-emerald-400' : 'bg-sky-400' }}"
+                         style="width: {{ $pctCheck }}%"></div>
+                </div>
+                <span class="text-xs font-mono {{ $pctCheck >= 100 ? 'text-emerald-400' : 'text-sky-400' }}">
+                    {{ $pctCheck }}%
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            @foreach($proyecto->checklist as $index => $item)
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all duration-150
+                        {{ $item['completado']
+                            ? 'bg-emerald-500/5 border-emerald-500/20'
+                            : 'bg-slate-800/40 border-slate-700/40' }}">
+                @can('proyectos.editar')
+                <form method="POST" action="{{ route('proyectos.checklist.toggle', [$proyecto, $index]) }}">
+                    @csrf @method('PATCH')
+                    <button type="submit"
+                            class="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150
+                                   {{ $item['completado']
+                                       ? 'bg-emerald-500 border-emerald-500 text-white'
+                                       : 'border-slate-600 hover:border-sky-500 bg-transparent' }}">
+                        @if($item['completado'])
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                        </svg>
+                        @endif
+                    </button>
+                </form>
+                @else
+                <div class="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0
+                            {{ $item['completado'] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-600' }}">
+                    @if($item['completado'])
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                    </svg>
+                    @endif
+                </div>
+                @endcan
+
+                <span class="text-xs {{ $item['completado'] ? 'text-slate-500 line-through' : 'text-slate-300' }} leading-tight">
+                    {{ $item['nombre'] }}
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- ── Notas de reunión ────────────────────────────────────────── --}}
+    <div
+        x-data="{ editando: false }"
+        class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6 mb-5"
+    >
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                </svg>
+                Notas de reunión
+            </h3>
+            @can('proyectos.editar')
+            <button @click="editando = !editando"
+                    class="text-xs text-slate-500 hover:text-sky-400 transition-colors flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z"/>
+                </svg>
+                <span x-text="editando ? 'Cancelar' : 'Editar'"></span>
+            </button>
+            @endcan
+        </div>
+
+        {{-- Modo lectura --}}
+        <div x-show="!editando">
+            @if($proyecto->notas_reunion)
+            <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-800/40 rounded-xl p-4 border border-slate-700/40">{{ $proyecto->notas_reunion }}</pre>
+            @else
+            <p class="text-xs text-slate-600 italic py-3 text-center">
+                Sin notas registradas — haz click en "Editar" para agregar
+            </p>
+            @endif
+        </div>
+
+        {{-- Modo edición --}}
+        @can('proyectos.editar')
+        <div x-show="editando" style="display:none">
+            <form method="POST" action="{{ route('proyectos.notas.update', $proyecto) }}" class="space-y-3">
+                @csrf @method('PATCH')
+                <textarea
+                    name="notas_reunion"
+                    rows="7"
+                    class="input-dark font-mono text-xs resize-y leading-relaxed"
+                    placeholder="Escribe los requerimientos y notas de la reunión con el cliente..."
+                >{{ $proyecto->notas_reunion }}</textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="editando = false"
+                            class="px-4 py-2 text-xs text-slate-400 hover:text-white transition-colors border border-slate-700/60 rounded-lg hover:bg-slate-800">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-sky-500 hover:bg-sky-400 transition-colors">
+                        Guardar notas
+                    </button>
+                </div>
+            </form>
+        </div>
+        @endcan
+    </div>
+
     {{-- Modal nueva fase --}}
     @can('proyectos.editar')
     <div x-data="{ open: false }" @open-modal-fase.window="open = true">

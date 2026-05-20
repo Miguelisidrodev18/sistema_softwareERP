@@ -20,9 +20,9 @@
             $items = $tareas[$estado] ?? collect();
             $c = $colorMap[$col['color']];
         @endphp
-        <div class="bg-slate-900 border border-slate-800/60 rounded-2xl overflow-hidden flex flex-col">
+        <div class="bg-slate-900 border border-slate-800/60 rounded-2xl flex flex-col">
 
-            <div class="flex items-center justify-between px-4 py-3 {{ $c['header'] }} border-b {{ $c['border'] }} flex-shrink-0">
+            <div class="flex items-center justify-between px-4 py-3 {{ $c['header'] }} border-b {{ $c['border'] }} rounded-t-2xl flex-shrink-0">
                 <span class="text-xs font-semibold">{{ $col['label'] }}</span>
                 <span class="text-xs font-mono bg-slate-900/40 px-1.5 py-0.5 rounded-md">{{ $items->count() }}</span>
             </div>

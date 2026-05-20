@@ -20,6 +20,7 @@ class UpdateProyectoRequest extends FormRequest
             'start_date'          => ['nullable', 'date'],
             'end_date'            => ['nullable', 'date', 'after_or_equal:start_date'],
             'responsible_user_id' => ['nullable', 'exists:users,id'],
+            'notas_reunion'       => ['nullable', 'string'],
         ];
     }
 }

@@ -14,33 +14,26 @@ class ProyectoController extends Controller
 {
     public function index()
     {
-        $clientes = Client::activos()->orderBy('razon_social')->get(['id', 'razon_social', 'nombre_comercial']);
-        $usuarios = User::orderBy('name')->get(['id', 'name']);
+        [$clientes, $usuarios] = $this->formData();
         return view('proyectos.index', compact('clientes', 'usuarios'));
     }
 
     public function create()
     {
-        $clientes = Client::activos()->orderBy('razon_social')->get(['id', 'razon_social', 'nombre_comercial']);
-        $usuarios = User::orderBy('name')->get(['id', 'name']);
+        [$clientes, $usuarios] = $this->formData();
         return view('proyectos.create', compact('clientes', 'usuarios'));
     }
 
     public function store(StoreProyectoRequest $request)
     {
-        $proyecto = Project::create($request->safe()->except('phases') + ['created_by' => auth()->id()]);
+        $data = $request->safe()->except('checklist');
 
-        // Crear fases si vienen en el form
-        if ($request->filled('phases')) {
-            foreach ($request->input('phases') as $i => $fase) {
-                if (!empty($fase['name'])) {
-                    $proyecto->phases()->create([
-                        'name'  => $fase['name'],
-                        'order' => $i,
-                    ]);
-                }
-            }
-        }
+        $data['checklist'] = collect($request->input('checklist', []))
+            ->map(fn($nombre) => ['nombre' => $nombre, 'completado' => false])
+            ->values()
+            ->toArray();
+
+        $proyecto = Project::create($data + ['created_by' => auth()->id()]);
 
         return redirect()
             ->route('proyectos.show', $proyecto)
@@ -55,10 +48,46 @@ class ProyectoController extends Controller
 
     public function edit(Project $proyecto)
     {
-        $clientes = Client::activos()->orderBy('razon_social')->get(['id', 'razon_social', 'nombre_comercial']);
-        $usuarios = User::orderBy('name')->get(['id', 'name']);
+        [$clientes, $usuarios] = $this->formData();
         $proyecto->load('phases');
         return view('proyectos.edit', compact('proyecto', 'clientes', 'usuarios'));
+    }
+
+    public function toggleChecklist(Project $proyecto, int $index)
+    {
+        $checklist = $proyecto->checklist ?? [];
+
+        if (!isset($checklist[$index])) {
+            return back();
+        }
+
+        $checklist[$index]['completado'] = !$checklist[$index]['completado'];
+        $proyecto->update(['checklist' => $checklist]);
+
+        return back()->with('success', 'Entregable actualizado.');
+    }
+
+    public function updateNotas(Project $proyecto)
+    {
+        request()->validate(['notas_reunion' => ['nullable', 'string']]);
+        $proyecto->update(['notas_reunion' => request()->input('notas_reunion')]);
+        return back()->with('success', 'Notas actualizadas.');
+    }
+
+    private function formData(): array
+    {
+        $clientes = Client::activos()
+            ->orderBy('razon_social')
+            ->get(['id', 'razon_social', 'nombre_comercial', 'numero_documento']);
+
+        $activos = ['planificado', 'en_curso', 'pausado', 'en_revision'];
+        $usuarios = User::withCount([
+                'responsibleProjects as active_projects_count' => fn($q) => $q->whereIn('status', $activos),
+            ])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return [$clientes, $usuarios];
     }
 
     public function update(UpdateProyectoRequest $request, Project $proyecto)
