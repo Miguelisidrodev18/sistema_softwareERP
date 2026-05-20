@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\Quote;
 use App\Models\Requirement;
 use App\Models\Sprint;
 use App\Policies\ClientePolicy;
@@ -29,5 +30,6 @@ class AppServiceProvider extends ServiceProvider
         Route::model('proyecto',      Project::class);
         Route::model('requerimiento', Requirement::class);
         Route::model('sprint',        Sprint::class);
+        Route::model('cotizacion',    Quote::class);
     }
 }

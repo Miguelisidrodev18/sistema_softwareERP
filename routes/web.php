@@ -7,6 +7,7 @@ use App\Http\Controllers\Proyectos\DailyReportController;
 use App\Http\Controllers\Proyectos\ProyectoController;
 use App\Http\Controllers\Proyectos\RequerimientoController;
 use App\Http\Controllers\Proyectos\SprintController;
+use App\Http\Controllers\Ventas\CotizacionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -123,10 +124,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         \App\Models\Requirement $requerimiento,
         Request $request
     ) {
-        $requerimiento->update(['sprint_id' => $request->input('sprint_id')]);
+        $requerimiento->update(['sprint_id' => $request->input('sprint_id') ?: null]);
         return back()->with('success', 'Tarea actualizada.');
     })->middleware('permission:sprints.gestionar')->name('requerimientos.asignar-sprint');
-    Route::get('/ventas',           fn() => $proximamente('Cotizaciones', 3))->name('cotizaciones.index');
+    // ── Cotizaciones ────────────────────────────────────────────────
+    Route::get('/ventas',                    [CotizacionController::class, 'index'])->middleware('permission:cotizaciones.ver')->name('cotizaciones.index');
+    Route::get('/ventas/create',             [CotizacionController::class, 'create'])->middleware('permission:cotizaciones.crear')->name('cotizaciones.create');
+    Route::post('/ventas',                   [CotizacionController::class, 'store'])->middleware('permission:cotizaciones.crear')->name('cotizaciones.store');
+    Route::get('/ventas/{cotizacion}',       [CotizacionController::class, 'show'])->middleware('permission:cotizaciones.ver')->name('cotizaciones.show');
+    Route::get('/ventas/{cotizacion}/edit',  [CotizacionController::class, 'edit'])->middleware('permission:cotizaciones.editar')->name('cotizaciones.edit');
+    Route::put('/ventas/{cotizacion}',       [CotizacionController::class, 'update'])->middleware('permission:cotizaciones.editar')->name('cotizaciones.update');
+    Route::delete('/ventas/{cotizacion}',    [CotizacionController::class, 'destroy'])->middleware('permission:cotizaciones.eliminar')->name('cotizaciones.destroy');
+    Route::get('/ventas/{cotizacion}/pdf',   [CotizacionController::class, 'pdf'])->middleware('permission:cotizaciones.pdf')->name('cotizaciones.pdf');
+    Route::patch('/ventas/{cotizacion}/estado', [CotizacionController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.aprobar')->name('cotizaciones.estado');
     Route::get('/facturacion',      fn() => $proximamente('Facturación SUNAT', 4))->name('facturacion.index');
     Route::get('/caja',             fn() => $proximamente('Caja', 5))->name('caja.index');
     Route::get('/entregas',         fn() => $proximamente('Entregas', 5))->name('entregas.index');

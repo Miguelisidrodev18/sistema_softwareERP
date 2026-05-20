@@ -35,7 +35,9 @@ class RolesPermissionsSeeder extends Seeder
             'cotizaciones.ver',
             'cotizaciones.crear',
             'cotizaciones.editar',
+            'cotizaciones.eliminar',
             'cotizaciones.aprobar',
+            'cotizaciones.pdf',
 
             // Facturación SUNAT
             'facturacion.ver',
@@ -87,7 +89,8 @@ class RolesPermissionsSeeder extends Seeder
             'clientes.ver', 'clientes.crear', 'clientes.editar', 'clientes.eliminar',
             'proyectos.ver', 'proyectos.crear', 'proyectos.editar', 'proyectos.eliminar',
             'requerimientos.ver', 'requerimientos.crear', 'requerimientos.editar',
-            'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar', 'cotizaciones.aprobar',
+            'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar',
+            'cotizaciones.eliminar', 'cotizaciones.aprobar', 'cotizaciones.pdf',
             'facturacion.ver', 'facturacion.emitir', 'facturacion.anular',
             'caja.ver', 'caja.registrar',
             'reportes.ver', 'reportes.exportar',
@@ -100,6 +103,7 @@ class RolesPermissionsSeeder extends Seeder
             'clientes.ver', 'clientes.crear', 'clientes.editar',
             'proyectos.ver',
             'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar',
+            'cotizaciones.aprobar', 'cotizaciones.pdf',
             'reportes.ver',
         ]);
 

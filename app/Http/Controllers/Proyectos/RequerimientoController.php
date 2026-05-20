@@ -12,7 +12,7 @@ class RequerimientoController extends Controller
 {
     public function index(Project $proyecto)
     {
-        $proyecto->load(['phases', 'requirements.assignedTo']);
+        $proyecto->load(['phases', 'requirements.assignedTo', 'requirements.sprint']);
         $usuarios = User::orderBy('name')->get(['id', 'name']);
         return view('requerimientos.index', compact('proyecto', 'usuarios'));
     }

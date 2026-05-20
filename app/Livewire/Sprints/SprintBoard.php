@@ -4,6 +4,7 @@ namespace App\Livewire\Sprints;
 
 use App\Models\Requirement;
 use App\Models\Sprint;
+use App\Models\User;
 use Livewire\Component;
 
 class SprintBoard extends Component
@@ -62,6 +63,8 @@ class SprintBoard extends Component
             ->get()
             ->groupBy('status');
 
-        return view('livewire.sprints.sprint-board', compact('tareas'));
+        $usuarios = User::orderBy('name')->get(['id', 'name']);
+
+        return view('livewire.sprints.sprint-board', compact('tareas', 'usuarios'));
     }
 }
