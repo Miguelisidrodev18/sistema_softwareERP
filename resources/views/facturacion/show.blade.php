@@ -96,7 +96,7 @@
                 @can('facturacion.anular')
                 @if($factura->puedeBorrarse())
                 <form method="POST" action="{{ route('facturacion.destroy', $factura) }}"
-                      x-data @submit.prevent="if(confirm('¿Eliminar este comprobante?')) $el.submit()">
+                      x-data @submit.prevent="if(confirm('¿Eliminar {{ $factura->numero_completo ?? $factura->serie }}?\n\nSolo se elimina este comprobante.')) $el.submit()">
                     @csrf @method('DELETE')
                     <button type="submit"
                             class="px-4 py-2 rounded-xl text-sm font-medium text-red-400
