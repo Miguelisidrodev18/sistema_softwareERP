@@ -1,3 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Base dark overrides ──────────────────────────────────────── */
+@layer base {
+    html { @apply bg-estelar-bg; }
+}
+
+/* ── Tech grid background pattern ─────────────────────────────── */
+@layer utilities {
+    .tech-grid {
+        background-image:
+            linear-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(14, 165, 233, 0.06) 1px, transparent 1px);
+        background-size: 44px 44px;
+    }
+
+    .glow-blue {
+        box-shadow: 0 0 25px rgba(14, 165, 233, 0.45);
+    }
+
+    .glow-blue-lg {
+        box-shadow: 0 0 55px rgba(14, 165, 233, 0.30);
+    }
+}
+
+/* ── Animated glow orbs (login background) ────────────────────── */
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+}
+
+.orb-1 {
+    width: 480px;
+    height: 480px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.22) 0%, transparent 70%);
+    top: -120px;
+    left: -120px;
+    animation: orb-float 10s ease-in-out infinite;
+}
+
+.orb-2 {
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+    bottom: -80px;
+    right: -60px;
+    animation: orb-float 13s ease-in-out infinite reverse;
+}
+
+.orb-3 {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+    top: 50%;
+    left: 40%;
+    animation: orb-float 8s ease-in-out infinite 3s;
+}
+
+@keyframes orb-float {
+    0%, 100% { transform: translate(0px, 0px);   }
+    33%       { transform: translate(28px, -22px); }
+    66%       { transform: translate(-18px, 28px); }
+}
+
+/* ── Auth / inputs ────────────────────────────────────────────── */
+@layer components {
+    .input-dark {
+        @apply w-full bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500
+               rounded-xl px-4 py-3 text-sm transition-all duration-200
+               focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50;
+    }
+    .input-dark.error { @apply border-red-500; }
+
+    .btn-primary-blue {
+        @apply w-full py-3 px-6 rounded-xl font-semibold text-white text-sm
+               bg-gradient-to-r from-sky-500 to-cyan-500
+               hover:from-sky-400 hover:to-cyan-400
+               shadow-[0_0_22px_rgba(14,165,233,0.40)]
+               hover:shadow-[0_0_35px_rgba(14,165,233,0.60)]
+               transition-all duration-300 active:scale-[0.98];
+    }
+
+    /* ── Sidebar navigation ─────────────────────────────────────── */
+    .nav-link {
+        @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+               transition-all duration-150 select-none w-full
+               text-slate-400 hover:text-slate-100 hover:bg-slate-800/60;
+    }
+    .nav-link-active {
+        @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+               transition-all duration-150 select-none w-full
+               bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/20;
+    }
+    .nav-section {
+        @apply px-3 pt-5 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-600
+               first:pt-2;
+    }
+
+    /* ── Flash / alert badges ───────────────────────────────────── */
+    .flash-success {
+        @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+               bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+    }
+    .flash-error {
+        @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+               bg-red-500/10 text-red-400 border border-red-500/20;
+    }
+    .flash-warning {
+        @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+               bg-amber-500/10 text-amber-400 border border-amber-500/20;
+    }
+}
