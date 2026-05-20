@@ -123,65 +123,87 @@ class SunatService
 
     private function buildPayloadFactura(Invoice $invoice): array
     {
-        return [
-            'company_id'     => $this->companyId,
-            'branch_id'      => $this->branchId,
-            'serie'          => $invoice->serie,
-            'fecha_emision'  => $invoice->fecha_emision->format('Y-m-d'),
-            'fecha_vencimiento' => $invoice->fecha_vencimiento?->format('Y-m-d'),
-            'moneda'         => $invoice->moneda,
-            'tipo_operacion' => '0101',
-            'forma_pago_tipo'=> 'Contado',
-            'client'         => $this->buildClient($invoice->client),
-            'detalles'       => $this->buildDetalles($invoice->items, $invoice),
-            'notas'          => $invoice->notas,
+        $payload = [
+            'company_id'        => $this->companyId,
+            'branch_id'         => $this->branchId,
+            'serie'             => $invoice->serie,
+            'fecha_emision'     => $invoice->fecha_emision->format('Y-m-d'),
+            'moneda'            => $invoice->moneda,
+            'tipo_operacion'    => '0101',
+            'forma_pago_tipo'   => 'Contado',
+            'usuario_creacion'  => $invoice->createdBy->email ?? auth()->user()?->email,
+            'client'            => $this->buildClient($invoice->client),
+            'detalles'          => $this->buildDetalles($invoice->items, $invoice),
         ];
+
+        if ($invoice->fecha_vencimiento) {
+            $payload['fecha_vencimiento'] = $invoice->fecha_vencimiento->format('Y-m-d');
+        }
+        if ($invoice->notas) {
+            $payload['notas'] = $invoice->notas;
+        }
+
+        return $payload;
     }
 
     private function buildPayloadBoleta(Invoice $invoice): array
     {
-        return [
-            'company_id'     => $this->companyId,
-            'branch_id'      => $this->branchId,
-            'serie'          => $invoice->serie,
-            'fecha_emision'  => $invoice->fecha_emision->format('Y-m-d'),
-            'moneda'         => $invoice->moneda,
-            'metodo_envio'   => 'individual',
-            'forma_pago_tipo'=> 'Contado',
-            'client'         => $this->buildClient($invoice->client),
-            'detalles'       => $this->buildDetalles($invoice->items, $invoice),
-            'notas'          => $invoice->notas,
+        $payload = [
+            'company_id'        => $this->companyId,
+            'branch_id'         => $this->branchId,
+            'serie'             => $invoice->serie,
+            'fecha_emision'     => $invoice->fecha_emision->format('Y-m-d'),
+            'moneda'            => $invoice->moneda,
+            'metodo_envio'      => 'individual',
+            'forma_pago_tipo'   => 'Contado',
+            'usuario_creacion'  => $invoice->createdBy->email ?? auth()->user()?->email,
+            'client'            => $this->buildClient($invoice->client),
+            'detalles'          => $this->buildDetalles($invoice->items, $invoice),
         ];
+
+        if ($invoice->notas) {
+            $payload['notas'] = $invoice->notas;
+        }
+
+        return $payload;
     }
 
     private function buildClient(Client $client): array
     {
-        return [
+        // Solo enviar campos con valor para no disparar validaciones de la API
+        $data = [
             'tipo_documento'   => Invoice::DOC_CODES[$client->tipo_documento] ?? '1',
             'numero_documento' => $client->numero_documento,
             'razon_social'     => $client->razon_social,
-            'nombre_comercial' => $client->nombre_comercial,
-            'direccion'        => $client->direccion,
-            'ubigeo'           => $client->ubigeo,
-            'email'            => $client->email,
-            'telefono'         => $client->telefono,
         ];
+
+        if ($client->nombre_comercial) $data['nombre_comercial'] = $client->nombre_comercial;
+        if ($client->direccion)        $data['direccion']        = $client->direccion;
+        if ($client->ubigeo)           $data['ubigeo']           = $client->ubigeo;
+        if ($client->email)            $data['email']            = $client->email;
+        if ($client->telefono)         $data['telefono']         = $client->telefono;
+
+        return $data;
     }
 
     private function buildDetalles($items, Invoice $invoice): array
     {
-        $igvPct = $invoice->igv > 0
-            ? round(($invoice->igv / $invoice->subtotal) * 100)
-            : 18;
+        // Calcular porcentaje IGV real desde los ítems o usar default
+        $igvPct = 18;
+        if ($invoice->subtotal > 0 && $invoice->igv > 0) {
+            $calculated = round(($invoice->igv / $invoice->subtotal) * 100);
+            if ($calculated > 0) $igvPct = $calculated;
+        }
 
-        return $items->map(function (InvoiceItem $item) use ($igvPct) {
+        return $items->values()->map(function (InvoiceItem $item, int $idx) use ($igvPct) {
             return [
-                'descripcion'       => $item->descripcion,
-                'unidad'            => $item->unidad_sunat,
-                'cantidad'          => (float) $item->cantidad,
-                'mto_valor_unitario'=> (float) $item->precio_unitario,
-                'porcentaje_igv'    => (float) ($item->igv_porcentaje ?? $igvPct),
-                'tip_afe_igv'       => $item->tipo_afectacion,
+                'codigo'             => 'SRV-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
+                'descripcion'        => $item->descripcion,
+                'unidad'             => $item->unidad_sunat,
+                'cantidad'           => (float) $item->cantidad,
+                'mto_valor_unitario' => (float) $item->precio_unitario,
+                'porcentaje_igv'     => (float) ($item->igv_porcentaje ?? $igvPct),
+                'tip_afe_igv'        => $item->tipo_afectacion,
             ];
         })->toArray();
     }

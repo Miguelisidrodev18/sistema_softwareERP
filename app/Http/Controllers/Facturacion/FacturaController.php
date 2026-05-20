@@ -28,9 +28,8 @@ class FacturaController extends Controller
         $clientes = Client::activos()->orderBy('razon_social')
             ->get(['id', 'tipo_documento', 'numero_documento', 'razon_social', 'nombre_comercial', 'direccion', 'ubigeo', 'email', 'telefono']);
 
-        $yaFacturadas = Invoice::whereNotNull('quote_id')->pluck('quote_id');
+        // Una cotización puede tener múltiples facturas (una por cuota), no filtrar por eso
         $cotizaciones = Quote::where('status', 'aceptado')
-            ->whereNotIn('id', $yaFacturadas)
             ->with('client')
             ->orderByDesc('created_at')
             ->get(['id', 'numero', 'client_id', 'total', 'moneda']);
@@ -133,7 +132,7 @@ class FacturaController extends Controller
         // Si la API está configurada, crear en la API SUNAT automáticamente
         if ($this->sunat->estaConfigurada()) {
             try {
-                $invoice->load(['client', 'items']);
+                $invoice->load(['client', 'items', 'createdBy']);
                 $result = $esFactura
                     ? $this->sunat->crearFactura($invoice)
                     : $this->sunat->crearBoleta($invoice);
@@ -193,20 +192,37 @@ class FacturaController extends Controller
                 ? $this->sunat->enviarFactura($factura->sunat_doc_id)
                 : $this->sunat->enviarBoleta($factura->sunat_doc_id);
 
-            $estadoApi = strtolower($result['data']['estado_sunat'] ?? 'error');
+            // La API puede retornar el estado en distintas claves
+            $data      = $result['data'] ?? $result;
+            $estadoRaw = strtolower(
+                $data['estado_sunat'] ?? $data['estado'] ?? ''
+            );
             $estadoMap = [
                 'aceptado'  => 'aceptado',
                 'pendiente' => 'pendiente',
                 'rechazado' => 'rechazado',
+                'enviado'   => 'pendiente',
             ];
+            $estadoFinal = $estadoMap[$estadoRaw] ?? 'pendiente';
+
+            // Buscar mensaje de SUNAT en diferentes claves posibles
+            $mensaje = $data['sunat_descripcion']
+                ?? $data['sunat_mensaje']
+                ?? $data['descripcion']
+                ?? $data['message']
+                ?? null;
 
             $factura->update([
-                'estado_sunat'  => $estadoMap[$estadoApi] ?? 'pendiente',
-                'sunat_mensaje' => $result['data']['sunat_descripcion'] ?? null,
+                'estado_sunat'  => $estadoFinal,
+                'sunat_mensaje' => $mensaje,
                 'emitido_at'    => now(),
             ]);
 
-            return back()->with('success', 'Comprobante enviado a SUNAT.');
+            $msg = $estadoFinal === 'aceptado'
+                ? '✓ Comprobante ACEPTADO por SUNAT.'
+                : 'Comprobante enviado — estado: ' . $estadoFinal;
+
+            return back()->with('success', $msg);
         } catch (\Exception $e) {
             $factura->update([
                 'estado_sunat'  => 'error',
