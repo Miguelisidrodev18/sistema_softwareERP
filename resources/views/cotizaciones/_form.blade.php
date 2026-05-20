@@ -2,51 +2,53 @@
 @php
     $igvPct      = $config?->igv_porcentaje ?? 18;
     $termDefault = $config ? "Validez de la cotización: 30 días calendario.\nPrecios en {$config->moneda}." : '';
-    // Items para Alpine (edit mode pre-populate)
-    $itemsInit = isset($cotizacion)
+    $itemsInit   = isset($cotizacion)
         ? $cotizacion->items->map(fn($i) => [
             'descripcion'     => $i->descripcion,
-            'cantidad'        => (float)$i->cantidad,
+            'cantidad'        => (float) $i->cantidad,
             'unidad'          => $i->unidad,
-            'precio_unitario' => (float)$i->precio_unitario,
-            'descuento'       => (float)$i->descuento,
-        ])->values()->toArray()
+            'precio_unitario' => (float) $i->precio_unitario,
+            'descuento'       => (float) $i->descuento,
+          ])->values()->toArray()
         : [['descripcion' => '', 'cantidad' => 1, 'unidad' => 'servicio', 'precio_unitario' => 0, 'descuento' => 0]];
 @endphp
 
+{{-- ── Banner de errores ─────────────────────────────────────────── --}}
+@if ($errors->any())
+<div class="bg-red-500/10 border border-red-500/30 rounded-2xl px-5 py-4 mb-4">
+    <p class="text-sm font-semibold text-red-400 mb-2">Corrige los siguientes errores:</p>
+    <ul class="space-y-1">
+        @foreach ($errors->all() as $error)
+        <li class="text-xs text-red-300 flex items-start gap-1.5">
+            <span class="text-red-500 mt-0.5">•</span> {{ $error }}
+        </li>
+        @endforeach
+    </ul>
+</div>
+@endif
+
 <div class="space-y-6"
      x-data="{
-        igvPct: {{ $igvPct }},
-        incluyeIgv: {{ old('incluye_igv', isset($cotizacion) ? ($cotizacion->incluye_igv ? 'true' : 'false') : 'true') }},
-        items: {{ Js::from($itemsInit) }},
-        unidades: {{ Js::from(\App\Models\Quote::UNIDADES) }},
-
+        igvPct:     {{ $igvPct }},
+        incluyeIgv: {{ old('incluye_igv', isset($cotizacion) ? ($cotizacion->incluye_igv ? '1' : '0') : '1') }} == '1',
+        items:      {{ Js::from($itemsInit) }},
         addItem() {
             this.items.push({ descripcion: '', cantidad: 1, unidad: 'servicio', precio_unitario: 0, descuento: 0 });
         },
-        removeItem(i) {
-            if (this.items.length > 1) this.items.splice(i, 1);
-        },
+        removeItem(i) { if (this.items.length > 1) this.items.splice(i, 1); },
         subtotalItem(item) {
-            const bruto = parseFloat(item.cantidad || 0) * parseFloat(item.precio_unitario || 0);
-            const desc  = parseFloat(item.descuento || 0);
-            return bruto * (1 - desc / 100);
+            const b = parseFloat(item.cantidad || 0) * parseFloat(item.precio_unitario || 0);
+            return b * (1 - parseFloat(item.descuento || 0) / 100);
         },
-        get subtotal() {
-            return this.items.reduce((s, i) => s + this.subtotalItem(i), 0);
-        },
-        get igv() {
-            return this.incluyeIgv ? this.subtotal * this.igvPct / 100 : 0;
-        },
-        get total() {
-            return this.subtotal + this.igv;
-        },
+        get subtotal() { return this.items.reduce((s, i) => s + this.subtotalItem(i), 0); },
+        get igv()      { return this.incluyeIgv ? this.subtotal * this.igvPct / 100 : 0; },
+        get total()    { return this.subtotal + this.igv; },
         fmt(n) {
             return new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
         }
      }">
 
-    {{-- ── Sección 1: Datos principales ─────────────────────────────── --}}
+    {{-- ── 1: Datos principales ─────────────────────────────────────── --}}
     <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6">
         <h3 class="text-sm font-semibold text-white mb-5 flex items-center gap-2">
             <span class="w-5 h-5 rounded-md bg-sky-500/20 flex items-center justify-center text-sky-400 text-xs font-bold">1</span>
@@ -55,35 +57,27 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            {{-- Cliente --}}
-            <div
-                x-data="{
-                    items:      {{ Js::from($clientes->map(fn($c) => ['id' => $c->id, 'label' => $c->razon_social . ($c->nombre_comercial ? ' — '.$c->nombre_comercial : ''), 'sub' => $c->numero_documento])) }},
-                    search: '',
-                    selectedId: {{ old('client_id', isset($cotizacion) ? $cotizacion->client_id : 'null') }},
-                    open: false,
+            {{-- Cliente combobox --}}
+            <div class="relative sm:col-span-2"
+                 x-data="{
+                    items:      {{ Js::from($clientes->map(fn($c) => ['id' => $c->id, 'label' => $c->razon_social.($c->nombre_comercial ? ' — '.$c->nombre_comercial : ''), 'sub' => $c->numero_documento])) }},
+                    search: '', selectedId: {{ old('client_id', isset($cotizacion) ? $cotizacion->client_id : 'null') }}, open: false,
                     get filtered() {
                         const q = this.search.toLowerCase();
-                        if (!q) return this.items.slice(0, 10);
-                        return this.items.filter(i => i.label.toLowerCase().includes(q) || (i.sub && i.sub.includes(q))).slice(0, 10);
+                        if (!q) return this.items.slice(0,10);
+                        return this.items.filter(i => i.label.toLowerCase().includes(q)||(i.sub&&i.sub.includes(q))).slice(0,10);
                     },
-                    select(item) { this.selectedId = item.id; this.search = item.label; this.open = false; },
-                    clear()      { this.selectedId = null; this.search = ''; this.$refs.input.focus(); },
-                    init() {
-                        if (this.selectedId) {
-                            const found = this.items.find(i => i.id == this.selectedId);
-                            if (found) this.search = found.label;
-                        }
-                    }
-                }"
-                class="relative sm:col-span-2"
-            >
+                    select(item){ this.selectedId=item.id; this.search=item.label; this.open=false; },
+                    clear(){ this.selectedId=null; this.search=''; this.$refs.input.focus(); },
+                    init(){ if(this.selectedId){ const f=this.items.find(i=>i.id==this.selectedId); if(f) this.search=f.label; } }
+                 }"
+                 >
                 <label class="block text-xs font-medium text-slate-400 mb-1.5">Cliente <span class="text-red-400">*</span></label>
                 <input type="hidden" name="client_id" :value="selectedId">
                 <div class="relative">
                     <input x-ref="input" type="text" x-model="search"
-                           @focus="open = true" @input="open = true; selectedId = null"
-                           @keydown.escape="open = false" @click.outside="open = false"
+                           @focus="open=true" @input="open=true; selectedId=null"
+                           @keydown.escape="open=false" @click.outside="open=false"
                            placeholder="Escribe el nombre o RUC del cliente..."
                            autocomplete="off"
                            class="input-dark pr-8 @error('client_id') error @enderror">
@@ -93,7 +87,7 @@
                     </button>
                 </div>
                 <div x-show="open && filtered.length > 0"
-                     class="absolute z-50 left-0 right-0 mt-1 bg-slate-800 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl max-h-52 overflow-y-auto"
+                     class="absolute z-[9999] left-0 right-0 mt-1 bg-slate-800 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl max-h-52 overflow-y-auto"
                      style="display:none">
                     <template x-for="item in filtered" :key="item.id">
                         <button type="button" @click="select(item)"
@@ -106,15 +100,13 @@
                 @error('client_id')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
-            {{-- Proyecto (opcional) --}}
+            {{-- Proyecto --}}
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1.5">Proyecto <span class="text-slate-600 font-normal">— opcional</span></label>
                 <select name="project_id" class="input-dark">
                     <option value="">Sin proyecto asociado</option>
                     @foreach($proyectos as $p)
-                    <option value="{{ $p->id }}" {{ old('project_id', $cotizacion->project_id ?? '') == $p->id ? 'selected' : '' }}>
-                        {{ $p->name }}
-                    </option>
+                    <option value="{{ $p->id }}" {{ old('project_id', $cotizacion->project_id ?? '') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -142,28 +134,26 @@
                        value="{{ old('fecha_vencimiento', isset($cotizacion) ? $cotizacion->fecha_vencimiento?->format('Y-m-d') : '') }}">
             </div>
 
-            {{-- IGV --}}
+            {{-- IGV toggle --}}
             <div class="sm:col-span-2 flex items-center gap-3">
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="hidden" name="incluye_igv" value="0">
                     <input type="checkbox" name="incluye_igv" value="1"
                            x-model="incluyeIgv"
-                           class="sr-only peer"
-                           {{ old('incluye_igv', isset($cotizacion) ? $cotizacion->incluye_igv : true) ? 'checked' : '' }}>
-                    <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer
+                           {{ old('incluye_igv', isset($cotizacion) ? $cotizacion->incluye_igv : true) ? 'checked' : '' }}
+                           class="sr-only peer">
+                    <div class="w-9 h-5 bg-slate-700 rounded-full peer
                                 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                                after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all
-                                peer-checked:bg-sky-500"></div>
+                                after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-500"></div>
                 </label>
                 <span class="text-xs text-slate-400">
-                    Aplicar IGV (<span x-text="igvPct"></span>%)
-                    <span class="text-slate-600 ml-1">— según configuración de empresa</span>
+                    Aplicar IGV (<span x-text="igvPct"></span>%) — según configuración de empresa
                 </span>
             </div>
         </div>
     </div>
 
-    {{-- ── Sección 2: Items ──────────────────────────────────────────── --}}
+    {{-- ── 2: Ítems ──────────────────────────────────────────────────── --}}
     <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6">
         <div class="flex items-center justify-between mb-5">
             <h3 class="text-sm font-semibold text-white flex items-center gap-2">
@@ -180,45 +170,46 @@
             </button>
         </div>
 
-        {{-- Cabecera tabla --}}
+        {{-- Cabeceras --}}
         <div class="hidden sm:grid grid-cols-12 gap-2 mb-2 px-1">
-            <div class="col-span-5 text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Descripción</div>
-            <div class="col-span-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-center">Cant.</div>
-            <div class="col-span-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-right">Precio unit.</div>
-            <div class="col-span-1 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-center">Dto %</div>
-            <div class="col-span-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-right">Subtotal</div>
+            <p class="col-span-5 text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Descripción / Unidad</p>
+            <p class="col-span-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-center">Cantidad</p>
+            <p class="col-span-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-right">Precio unit.</p>
+            <p class="col-span-1 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-center">Dto %</p>
+            <p class="col-span-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider text-right">Subtotal</p>
         </div>
 
-        {{-- Items --}}
+        {{-- Filas de ítems — los :name van directo en cada input visible --}}
         <div class="space-y-2">
             <template x-for="(item, index) in items" :key="index">
-                <div class="grid grid-cols-12 gap-2 items-start bg-slate-800/40 border border-slate-700/40 rounded-xl p-3">
+                <div class="grid grid-cols-12 gap-2 items-center bg-slate-800/40 border border-slate-700/40 rounded-xl p-3">
 
-                    {{-- Hidden inputs --}}
-                    <input type="hidden" :name="`items[${index}][descripcion]`"    :value="item.descripcion">
-                    <input type="hidden" :name="`items[${index}][cantidad]`"       :value="item.cantidad">
-                    <input type="hidden" :name="`items[${index}][unidad]`"         :value="item.unidad">
-                    <input type="hidden" :name="`items[${index}][precio_unitario]`" :value="item.precio_unitario">
-                    <input type="hidden" :name="`items[${index}][descuento]`"      :value="item.descuento">
-
-                    {{-- Descripción + unidad --}}
+                    {{-- Descripción + select unidad --}}
                     <div class="col-span-12 sm:col-span-5 space-y-1.5">
-                        <input type="text" x-model="item.descripcion"
+                        <input type="text"
+                               x-model="item.descripcion"
+                               :name="`items[${index}][descripcion]`"
                                placeholder="Descripción del servicio..."
                                class="w-full bg-slate-800 border border-slate-700/40 rounded-lg px-3 py-2 text-xs text-white
                                       placeholder-slate-600 focus:outline-none focus:border-sky-500/60 transition-colors">
                         <select x-model="item.unidad"
+                                :name="`items[${index}][unidad]`"
                                 class="w-full bg-slate-800 border border-slate-700/40 rounded-lg px-3 py-1.5 text-xs text-slate-400
                                        focus:outline-none focus:border-sky-500/60 transition-colors">
-                            <template x-for="u in unidades" :key="u">
-                                <option :value="u" x-text="u" :selected="item.unidad === u"></option>
-                            </template>
+                            <option value="servicio">servicio</option>
+                            <option value="hora">hora</option>
+                            <option value="día">día</option>
+                            <option value="mes">mes</option>
+                            <option value="unidad">unidad</option>
+                            <option value="licencia">licencia</option>
                         </select>
                     </div>
 
                     {{-- Cantidad --}}
                     <div class="col-span-4 sm:col-span-2">
-                        <input type="number" x-model.number="item.cantidad"
+                        <input type="number"
+                               x-model="item.cantidad"
+                               :name="`items[${index}][cantidad]`"
                                min="0.01" step="0.01" placeholder="1"
                                class="w-full bg-slate-800 border border-slate-700/40 rounded-lg px-3 py-2 text-xs text-white text-center
                                       focus:outline-none focus:border-sky-500/60 transition-colors">
@@ -226,7 +217,9 @@
 
                     {{-- Precio unitario --}}
                     <div class="col-span-4 sm:col-span-2">
-                        <input type="number" x-model.number="item.precio_unitario"
+                        <input type="number"
+                               x-model="item.precio_unitario"
+                               :name="`items[${index}][precio_unitario]`"
                                min="0" step="0.01" placeholder="0.00"
                                class="w-full bg-slate-800 border border-slate-700/40 rounded-lg px-3 py-2 text-xs text-white text-right
                                       focus:outline-none focus:border-sky-500/60 transition-colors">
@@ -234,15 +227,17 @@
 
                     {{-- Descuento --}}
                     <div class="col-span-2 sm:col-span-1">
-                        <input type="number" x-model.number="item.descuento"
+                        <input type="number"
+                               x-model="item.descuento"
+                               :name="`items[${index}][descuento]`"
                                min="0" max="100" step="1" placeholder="0"
-                               class="w-full bg-slate-800 border border-slate-700/40 rounded-lg px-3 py-2 text-xs text-white text-center
+                               class="w-full bg-slate-800 border border-slate-700/40 rounded-lg px-2 py-2 text-xs text-white text-center
                                       focus:outline-none focus:border-sky-500/60 transition-colors">
                     </div>
 
                     {{-- Subtotal + eliminar --}}
                     <div class="col-span-2 sm:col-span-2 flex items-center justify-end gap-2">
-                        <p class="text-xs font-semibold font-mono text-white text-right" x-text="fmt(subtotalItem(item))"></p>
+                        <p class="text-xs font-semibold font-mono text-white" x-text="fmt(subtotalItem(item))"></p>
                         <button type="button" @click="removeItem(index)"
                                 x-show="items.length > 1"
                                 class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-md
@@ -252,6 +247,7 @@
                             </svg>
                         </button>
                     </div>
+
                 </div>
             </template>
         </div>
@@ -273,7 +269,7 @@
         </div>
     </div>
 
-    {{-- ── Sección 3: Notas y términos ──────────────────────────────── --}}
+    {{-- ── 3: Notas y términos ───────────────────────────────────────── --}}
     <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6">
         <h3 class="text-sm font-semibold text-white mb-5 flex items-center gap-2">
             <span class="w-5 h-5 rounded-md bg-sky-500/20 flex items-center justify-center text-sky-400 text-xs font-bold">3</span>

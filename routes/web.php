@@ -7,6 +7,7 @@ use App\Http\Controllers\Proyectos\DailyReportController;
 use App\Http\Controllers\Proyectos\ProyectoController;
 use App\Http\Controllers\Proyectos\RequerimientoController;
 use App\Http\Controllers\Proyectos\SprintController;
+use App\Http\Controllers\Facturacion\FacturaController;
 use App\Http\Controllers\Ventas\CotizacionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -137,7 +138,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/ventas/{cotizacion}',    [CotizacionController::class, 'destroy'])->middleware('permission:cotizaciones.eliminar')->name('cotizaciones.destroy');
     Route::get('/ventas/{cotizacion}/pdf',   [CotizacionController::class, 'pdf'])->middleware('permission:cotizaciones.pdf')->name('cotizaciones.pdf');
     Route::patch('/ventas/{cotizacion}/estado', [CotizacionController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.aprobar')->name('cotizaciones.estado');
-    Route::get('/facturacion',      fn() => $proximamente('Facturación SUNAT', 4))->name('facturacion.index');
+    // ── Facturación SUNAT ────────────────────────────────────────────
+    Route::get('/facturacion',                       [FacturaController::class, 'index'])->middleware('permission:facturacion.ver')->name('facturacion.index');
+    Route::get('/facturacion/create',                [FacturaController::class, 'create'])->middleware('permission:facturacion.emitir')->name('facturacion.create');
+    Route::post('/facturacion',                      [FacturaController::class, 'store'])->middleware('permission:facturacion.emitir')->name('facturacion.store');
+    Route::get('/facturacion/{factura}',             [FacturaController::class, 'show'])->middleware('permission:facturacion.ver')->name('facturacion.show');
+    Route::delete('/facturacion/{factura}',          [FacturaController::class, 'destroy'])->middleware('permission:facturacion.anular')->name('facturacion.destroy');
+    Route::post('/facturacion/{factura}/enviar',     [FacturaController::class, 'enviar'])->middleware('permission:facturacion.emitir')->name('facturacion.enviar');
+    Route::get('/facturacion/{factura}/pdf',         [FacturaController::class, 'descargarPdf'])->middleware('permission:facturacion.ver')->name('facturacion.pdf');
+    Route::get('/facturacion/{factura}/xml',         [FacturaController::class, 'descargarXml'])->middleware('permission:facturacion.ver')->name('facturacion.xml');
+    Route::get('/facturacion/{factura}/cdr',         [FacturaController::class, 'descargarCdr'])->middleware('permission:facturacion.ver')->name('facturacion.cdr');
     Route::get('/caja',             fn() => $proximamente('Caja', 5))->name('caja.index');
     Route::get('/entregas',         fn() => $proximamente('Entregas', 5))->name('entregas.index');
     Route::get('/reportes',         fn() => $proximamente('Reportes', 6))->name('reportes.index');

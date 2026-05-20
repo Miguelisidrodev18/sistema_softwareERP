@@ -40,4 +40,13 @@ return [
         'url'   => 'https://api.apis.net.pe/v1',
     ],
 
+    // ── API de Facturación Electrónica SUNAT ─────────────────────────
+    'sunat_api' => [
+        'url'        => env('SUNAT_API_URL', 'http://localhost:8001'),
+        'token'      => env('SUNAT_API_TOKEN', ''),
+        'company_id' => env('SUNAT_API_COMPANY_ID', 1),
+        'branch_id'  => env('SUNAT_API_BRANCH_ID', 1),
+        'timeout'    => env('SUNAT_API_TIMEOUT', 30),
+    ],
+
 ];

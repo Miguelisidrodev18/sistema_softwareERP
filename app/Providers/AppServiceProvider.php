@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Client;
+use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quote;
 use App\Models\Requirement;
@@ -31,5 +32,6 @@ class AppServiceProvider extends ServiceProvider
         Route::model('requerimiento', Requirement::class);
         Route::model('sprint',        Sprint::class);
         Route::model('cotizacion',    Quote::class);
+        Route::model('factura',       Invoice::class);
     }
 }
