@@ -69,7 +69,7 @@ class CotizacionController extends Controller
 
     public function show(Quote $cotizacion)
     {
-        $cotizacion->load(['client', 'project', 'items', 'createdBy']);
+        $cotizacion->load(['client', 'project', 'items', 'createdBy', 'payments.invoice']);
         $config = EmpresaConfig::first();
         return view('cotizaciones.show', compact('cotizacion', 'config'));
     }

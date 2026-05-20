@@ -32,12 +32,24 @@
     </div>
     @endif
 
+    @if($preQuote)
+    <div class="bg-sky-500/10 border border-sky-500/30 rounded-2xl px-5 py-3 mb-5 flex items-center gap-3">
+        <svg class="w-4 h-4 text-sky-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
+        </svg>
+        <p class="text-xs text-sky-300">
+            Pre-llenado desde cotización <span class="font-bold font-mono">{{ $preQuote->numero }}</span>
+            @if($prePago) — cuota <span class="font-bold">{{ $prePago->nombre }}</span> ({{ $prePago->porcentaje }}%) @endif
+        </p>
+    </div>
+    @endif
+
     <div class="max-w-4xl mx-auto"
          x-data="{
-            tipo: '{{ old('tipo_comprobante', '01') }}',
+            tipo: '{{ old('tipo_comprobante', $preQuote?->client?->tipo_documento === 'RUC' ? '01' : '03') ?? '01' }}',
             igvPct: {{ $igvPct }},
             incluyeIgv: true,
-            items: [{ descripcion: '', unidad_sunat: 'ZZ', cantidad: 1, precio_unitario: 0, tipo_afectacion: '10' }],
+            items: {{ Js::from(count($preItems) ? $preItems : [['descripcion' => '', 'unidad_sunat' => 'ZZ', 'cantidad' => 1, 'precio_unitario' => 0, 'tipo_afectacion' => '10']]) }},
             addItem() { this.items.push({ descripcion: '', unidad_sunat: 'ZZ', cantidad: 1, precio_unitario: 0, tipo_afectacion: '10' }); },
             removeItem(i) { if(this.items.length > 1) this.items.splice(i, 1); },
             subtotalItem(item) {
@@ -111,18 +123,21 @@
                         <select name="quote_id" class="input-dark">
                             <option value="">Sin cotización</option>
                             @foreach($cotizaciones as $cot)
-                            <option value="{{ $cot->id }}" {{ old('quote_id') == $cot->id ? 'selected' : '' }}>
+                            <option value="{{ $cot->id }}" {{ (old('quote_id') ?? $preQuote?->id) == $cot->id ? 'selected' : '' }}>
                                 {{ $cot->numero }} — {{ $cot->client->razon_social }} ({{ $cot->monedaSimbolo() }} {{ number_format($cot->total, 2) }})
                             </option>
                             @endforeach
                         </select>
+                        @if($prePago)
+                        <input type="hidden" name="payment_id" value="{{ $prePago->id }}">
+                        @endif
                     </div>
 
                     {{-- Cliente --}}
                     <div class="sm:col-span-2 relative"
                          x-data="{
                             items:      {{ Js::from($clientes->map(fn($c) => ['id' => $c->id, 'label' => $c->razon_social, 'sub' => $c->tipo_documento.' · '.$c->numero_documento, 'tipo' => $c->tipo_documento])) }},
-                            search: '', selectedId: {{ old('client_id', 'null') }}, open: false,
+                            search: '', selectedId: {{ old('client_id', $preQuote?->client_id ?? 'null') }}, open: false,
                             get filtered() {
                                 const q = this.search.toLowerCase();
                                 const items = this.$parent.tipo === '01'

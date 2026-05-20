@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quote;
+use App\Models\QuotePayment;
 use App\Models\Requirement;
 use App\Models\Sprint;
 use App\Policies\ClientePolicy;
@@ -33,5 +34,6 @@ class AppServiceProvider extends ServiceProvider
         Route::model('sprint',        Sprint::class);
         Route::model('cotizacion',    Quote::class);
         Route::model('factura',       Invoice::class);
+        Route::model('pago',          QuotePayment::class);
     }
 }

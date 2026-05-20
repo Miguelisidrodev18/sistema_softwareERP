@@ -222,4 +222,223 @@
         </div>
     </div>
 
+    {{-- ══ Plan de cobros ════════════════════════════════════════════════ --}}
+    @php
+        $pagos        = $cotizacion->payments;
+        $cobrado      = $cotizacion->montoCobrado();
+        $pendiente    = $cotizacion->montoPendiente();
+        $pctCobrado   = $cotizacion->porcentajeCobrado();
+        $sim          = $cotizacion->monedaSimbolo();
+    @endphp
+
+    <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-6 mt-5">
+
+        {{-- Cabecera --}}
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+            <div>
+                <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/>
+                    </svg>
+                    Plan de cobros
+                </h3>
+                @if($pagos->isNotEmpty())
+                <p class="text-xs text-slate-500 mt-0.5 ml-6">
+                    Cobrado: <span class="text-emerald-400 font-semibold font-mono">{{ $sim }} {{ number_format($cobrado, 2) }}</span>
+                    de <span class="text-white font-semibold font-mono">{{ $sim }} {{ number_format($cotizacion->total, 2) }}</span>
+                </p>
+                @endif
+            </div>
+            @can('cotizaciones.editar')
+            <div class="flex items-center gap-2">
+                @if($pagos->isEmpty())
+                <form method="POST" action="{{ route('cotizaciones.pagos.plan', $cotizacion) }}">
+                    @csrf
+                    <button type="submit"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                                   text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        Generar plan (40% + 30% + 30%)
+                    </button>
+                </form>
+                @endif
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                                   text-slate-400 bg-slate-800/60 border border-slate-700/40 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        Agregar cuota
+                    </button>
+                    <div x-show="open" @click.outside="open = false"
+                         class="absolute right-0 top-9 z-30 bg-slate-800 border border-slate-700/60 rounded-2xl shadow-2xl p-4 w-72"
+                         style="display:none">
+                        <p class="text-xs font-semibold text-white mb-3">Nueva cuota</p>
+                        <form method="POST" action="{{ route('cotizaciones.pagos.store', $cotizacion) }}" class="space-y-3">
+                            @csrf
+                            <div>
+                                <label class="block text-[10px] text-slate-500 mb-1">Nombre</label>
+                                <input type="text" name="nombre" placeholder="Anticipo, 2da cuota..." class="input-dark text-xs py-1.5" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-500 mb-1">% del total ({{ $sim }} {{ number_format($cotizacion->total, 2) }})</label>
+                                <input type="number" name="porcentaje" min="0.01" max="100" step="0.01"
+                                       placeholder="40" class="input-dark text-xs py-1.5 font-mono" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-500 mb-1">Fecha vencimiento</label>
+                                <input type="date" name="fecha_vencimiento" class="input-dark text-xs py-1.5 font-mono">
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" @click="open = false" class="px-3 py-1.5 text-xs text-slate-500 hover:text-white transition-colors">Cancelar</button>
+                                <button type="submit" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-sky-500 text-white hover:bg-sky-400 transition-colors">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @endcan
+        </div>
+
+        {{-- Barra de progreso --}}
+        @if($pagos->isNotEmpty())
+        <div class="mb-5">
+            <div class="flex items-center justify-between mb-1.5 text-[10px] text-slate-600 font-mono">
+                <span>{{ $pctCobrado }}% cobrado</span>
+                <span>Pendiente: {{ $sim }} {{ number_format($pendiente, 2) }}</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700
+                    {{ $pctCobrado >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-sky-500 to-cyan-400' }}"
+                     style="width: {{ $pctCobrado }}%"></div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            @foreach($pagos as $pago)
+            <div class="bg-slate-800/50 border {{ $pago->estado === 'pagada' ? 'border-emerald-500/20' : ($pago->estaVencida() ? 'border-red-500/20' : 'border-slate-700/40') }} rounded-2xl p-4"
+                 x-data="{ modalPagar: false }">
+
+                <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-sm font-semibold text-white">{{ $pago->nombre }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold {{ $pago->estadoBadgeClass() }}">
+                                {{ $pago->estadoLabel() }}
+                            </span>
+                            @if($pago->invoice)
+                            <a href="{{ route('facturacion.show', $pago->invoice) }}"
+                               class="text-[10px] text-violet-400 hover:underline font-mono">
+                                {{ $pago->invoice->numero_completo ?? 'Ver comprobante' }}
+                            </a>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-4 mt-1.5 flex-wrap text-xs text-slate-500 font-mono">
+                            <span class="text-white font-bold">{{ $sim }} {{ number_format($pago->monto, 2) }}</span>
+                            <span class="text-slate-600">{{ $pago->porcentaje }}%</span>
+                            @if($pago->fecha_vencimiento)
+                            <span class="{{ $pago->estaVencida() ? 'text-red-400' : '' }}">Vence: {{ $pago->fecha_vencimiento->format('d/m/Y') }}</span>
+                            @endif
+                            @if($pago->fecha_pago)
+                            <span class="text-emerald-400">Pagado: {{ $pago->fecha_pago->format('d/m/Y') }}</span>
+                            @endif
+                            @if($pago->metodo_pago)
+                            <span>{{ $pago->metodo_pago }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        @can('facturacion.emitir')
+                        @if(!$pago->invoice_id)
+                        <a href="{{ route('facturacion.create') }}?quote_id={{ $cotizacion->id }}&payment_id={{ $pago->id }}"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                                  text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                            </svg>
+                            Emitir
+                        </a>
+                        @endif
+                        @endcan
+
+                        @can('cotizaciones.editar')
+                        @if($pago->estado !== 'pagada')
+                        <button @click="modalPagar = !modalPagar"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                                       text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                            </svg>
+                            Cobrado
+                        </button>
+                        @else
+                        <form method="POST" action="{{ route('cotizaciones.pagos.revertir', [$cotizacion, $pago]) }}">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="text-[10px] text-slate-600 hover:text-amber-400 px-2 py-1.5 rounded-lg transition-colors">Revertir</button>
+                        </form>
+                        @endif
+                        @if($pago->estado !== 'pagada')
+                        <form method="POST" action="{{ route('cotizaciones.pagos.destroy', [$cotizacion, $pago]) }}"
+                              x-data @submit.prevent="if(confirm('¿Eliminar esta cuota?')) $el.submit()">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                            </button>
+                        </form>
+                        @endif
+                        @endcan
+                    </div>
+                </div>
+
+                {{-- Formulario cobro inline --}}
+                <div x-show="modalPagar" class="mt-3 pt-3 border-t border-slate-700/40" style="display:none">
+                    <p class="text-xs font-semibold text-white mb-3">Registrar cobro — {{ $sim }} {{ number_format($pago->monto, 2) }}</p>
+                    <form method="POST" action="{{ route('cotizaciones.pagos.pagar', [$cotizacion, $pago]) }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        @csrf @method('PATCH')
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1">Fecha de cobro</label>
+                            <input type="date" name="fecha_pago" value="{{ now()->format('Y-m-d') }}" class="input-dark text-xs py-1.5 font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1">Método</label>
+                            <select name="metodo_pago" class="input-dark text-xs py-1.5">
+                                <option value="">— sin especificar</option>
+                                <option value="Transferencia bancaria">Transferencia bancaria</option>
+                                <option value="Yape">Yape</option>
+                                <option value="Plin">Plin</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1">N° operación</label>
+                            <input type="text" name="notas" placeholder="Referencia, código..." class="input-dark text-xs py-1.5">
+                        </div>
+                        <div class="sm:col-span-3 flex justify-end gap-2">
+                            <button type="button" @click="modalPagar = false" class="px-3 py-1.5 text-xs text-slate-500 hover:text-white transition-colors">Cancelar</button>
+                            <button type="submit" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500 text-white hover:bg-emerald-400 transition-colors">
+                                Confirmar cobro
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        @else
+        <div class="text-center py-10 text-slate-600">
+            <svg class="w-8 h-8 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/>
+            </svg>
+            <p class="text-sm">Sin plan de cobros</p>
+            <p class="text-xs mt-1 text-slate-700">Genera el plan estándar (40% + 30% + 30%) o agrega cuotas personalizadas</p>
+        </div>
+        @endif
+    </div>
+
 </x-app-layout>

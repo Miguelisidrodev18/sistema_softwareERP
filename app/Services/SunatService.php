@@ -19,7 +19,10 @@ class SunatService
 
     public function __construct()
     {
-        $this->baseUrl   = rtrim(config('services.sunat_api.url', 'http://localhost:8001'), '/');
+        // Normalizar: quitar /api o /api/v1 del final para que las rutas internas queden correctas
+        $url = rtrim(config('services.sunat_api.url', 'http://localhost:8001'), '/');
+        $url = preg_replace('#/api(/v\d+)?$#', '', $url);
+        $this->baseUrl = $url;
         $this->token     = config('services.sunat_api.token', '');
         $this->companyId = (int) config('services.sunat_api.company_id', 1);
         $this->branchId  = (int) config('services.sunat_api.branch_id', 1);

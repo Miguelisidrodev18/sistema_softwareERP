@@ -9,6 +9,7 @@ use App\Models\EmpresaConfig;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Quote;
+use App\Models\QuotePayment;
 use App\Services\SunatService;
 use Illuminate\Support\Facades\DB;
 
@@ -27,18 +28,53 @@ class FacturaController extends Controller
         $clientes = Client::activos()->orderBy('razon_social')
             ->get(['id', 'tipo_documento', 'numero_documento', 'razon_social', 'nombre_comercial', 'direccion', 'ubigeo', 'email', 'telefono']);
 
+        $yaFacturadas = Invoice::whereNotNull('quote_id')->pluck('quote_id');
         $cotizaciones = Quote::where('status', 'aceptado')
-            ->whereNull('invoices') // no facturadas aún
+            ->whereNotIn('id', $yaFacturadas)
             ->with('client')
             ->orderByDesc('created_at')
-            ->get(['id', 'numero', 'client_id', 'total', 'moneda'])
-            ->filter(fn($q) => !Invoice::where('quote_id', $q->id)->exists());
+            ->get(['id', 'numero', 'client_id', 'total', 'moneda']);
 
         $config  = EmpresaConfig::first();
         $igvPct  = $config?->igv_porcentaje ?? 18;
         $apiOk   = $this->sunat->estaConfigurada();
 
-        return view('facturacion.create', compact('clientes', 'cotizaciones', 'config', 'igvPct', 'apiOk'));
+        // Pre-llenar desde cotización / cuota
+        $preQuote   = null;
+        $prePago    = null;
+        $preItems   = [];
+
+        if ($quoteId = request()->integer('quote_id')) {
+            $preQuote = Quote::with(['client', 'items'])->find($quoteId);
+            if ($preQuote) {
+                if ($pagoId = request()->integer('payment_id')) {
+                    $prePago = $preQuote->payments()->find($pagoId);
+                }
+                // Construir ítems pre-llenados
+                if ($prePago) {
+                    $preItems = [[
+                        'descripcion'    => $prePago->nombre . ' — ' . $preQuote->numero,
+                        'unidad_sunat'   => 'ZZ',
+                        'cantidad'       => 1,
+                        'precio_unitario'=> round((float) $prePago->monto / (1 + $igvPct / 100), 2),
+                        'tipo_afectacion'=> '10',
+                    ]];
+                } else {
+                    $preItems = $preQuote->items->map(fn($i) => [
+                        'descripcion'    => $i->descripcion,
+                        'unidad_sunat'   => 'ZZ',
+                        'cantidad'       => (float) $i->cantidad,
+                        'precio_unitario'=> round((float) $i->subtotal / (float) $i->cantidad, 2),
+                        'tipo_afectacion'=> '10',
+                    ])->toArray();
+                }
+            }
+        }
+
+        return view('facturacion.create', compact(
+            'clientes', 'cotizaciones', 'config', 'igvPct', 'apiOk',
+            'preQuote', 'prePago', 'preItems'
+        ));
     }
 
     public function store(StoreFacturaRequest $request)
@@ -111,6 +147,13 @@ class FacturaController extends Controller
                     'sunat_mensaje'  => $e->getMessage(),
                 ]);
             }
+        }
+
+        // Si viene de una cuota de plan de cobros, vincularla
+        if ($paymentId = request()->integer('payment_id')) {
+            QuotePayment::where('id', $paymentId)
+                ->where('quote_id', $invoice->quote_id)
+                ->update(['invoice_id' => $invoice->id]);
         }
 
         return redirect()->route('facturacion.show', $invoice)

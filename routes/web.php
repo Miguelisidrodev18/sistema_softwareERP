@@ -9,6 +9,7 @@ use App\Http\Controllers\Proyectos\RequerimientoController;
 use App\Http\Controllers\Proyectos\SprintController;
 use App\Http\Controllers\Facturacion\FacturaController;
 use App\Http\Controllers\Ventas\CotizacionController;
+use App\Http\Controllers\Ventas\QuotePaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -138,6 +139,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/ventas/{cotizacion}',    [CotizacionController::class, 'destroy'])->middleware('permission:cotizaciones.eliminar')->name('cotizaciones.destroy');
     Route::get('/ventas/{cotizacion}/pdf',   [CotizacionController::class, 'pdf'])->middleware('permission:cotizaciones.pdf')->name('cotizaciones.pdf');
     Route::patch('/ventas/{cotizacion}/estado', [CotizacionController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.aprobar')->name('cotizaciones.estado');
+
+    // ── Plan de cobros (cuotas) ──────────────────────────────────────
+    Route::middleware('permission:cotizaciones.editar')->group(function () {
+        Route::post('/ventas/{cotizacion}/pagos/plan',          [QuotePaymentController::class, 'generarPlan'])->name('cotizaciones.pagos.plan');
+        Route::post('/ventas/{cotizacion}/pagos',               [QuotePaymentController::class, 'store'])->name('cotizaciones.pagos.store');
+        Route::patch('/ventas/{cotizacion}/pagos/{pago}',       [QuotePaymentController::class, 'update'])->name('cotizaciones.pagos.update');
+        Route::patch('/ventas/{cotizacion}/pagos/{pago}/pagar', [QuotePaymentController::class, 'marcarPagado'])->name('cotizaciones.pagos.pagar');
+        Route::patch('/ventas/{cotizacion}/pagos/{pago}/revertir', [QuotePaymentController::class, 'desmarcarPagado'])->name('cotizaciones.pagos.revertir');
+        Route::delete('/ventas/{cotizacion}/pagos/{pago}',      [QuotePaymentController::class, 'destroy'])->name('cotizaciones.pagos.destroy');
+    });
     // ── Facturación SUNAT ────────────────────────────────────────────
     Route::get('/facturacion',                       [FacturaController::class, 'index'])->middleware('permission:facturacion.ver')->name('facturacion.index');
     Route::get('/facturacion/create',                [FacturaController::class, 'create'])->middleware('permission:facturacion.emitir')->name('facturacion.create');

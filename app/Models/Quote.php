@@ -46,6 +46,52 @@ class Quote extends Model
     public function project(): BelongsTo   { return $this->belongsTo(Project::class); }
     public function createdBy(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
     public function items(): HasMany       { return $this->hasMany(QuoteItem::class)->orderBy('orden'); }
+    public function payments(): HasMany    { return $this->hasMany(QuotePayment::class)->orderBy('orden'); }
+    public function invoices(): HasMany    { return $this->hasMany(Invoice::class); }
+
+    // ── Helpers de cobros ─────────────────────────────────────────────
+    public function montoCobrado(): float
+    {
+        return (float) $this->payments()->where('estado', 'pagada')->sum('monto');
+    }
+
+    public function montoPendiente(): float
+    {
+        return (float) $this->total - $this->montoCobrado();
+    }
+
+    public function tienePlanCobros(): bool
+    {
+        return $this->payments()->exists();
+    }
+
+    public function porcentajeCobrado(): int
+    {
+        return $this->total > 0
+            ? (int) round($this->montoCobrado() / (float) $this->total * 100)
+            : 0;
+    }
+
+    public function generarPlanDefault(): void
+    {
+        if ($this->tienePlanCobros()) return;
+
+        $cuotas = [
+            ['nombre' => 'Anticipo',     'porcentaje' => 40, 'orden' => 1],
+            ['nombre' => '2da cuota',    'porcentaje' => 30, 'orden' => 2],
+            ['nombre' => 'Cuota final',  'porcentaje' => 30, 'orden' => 3],
+        ];
+
+        foreach ($cuotas as $cuota) {
+            $this->payments()->create([
+                'nombre'     => $cuota['nombre'],
+                'porcentaje' => $cuota['porcentaje'],
+                'monto'      => round((float) $this->total * $cuota['porcentaje'] / 100, 2),
+                'orden'      => $cuota['orden'],
+                'estado'     => 'pendiente',
+            ]);
+        }
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────
     public function statusLabel(): string
