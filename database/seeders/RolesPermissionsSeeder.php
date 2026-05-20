@@ -59,6 +59,11 @@ class RolesPermissionsSeeder extends Seeder
             'usuarios.crear',
             'usuarios.editar',
             'usuarios.eliminar',
+
+            // Sprints / Scrum
+            'sprints.ver',       // ver boards, sprint list, daily reports del equipo
+            'sprints.gestionar', // crear, editar, activar, cerrar sprints
+            'sprints.daily',     // registrar daily standup propio
         ];
 
         foreach ($permissions as $permission) {
@@ -67,15 +72,17 @@ class RolesPermissionsSeeder extends Seeder
 
         // --- Roles ---
 
-        $superAdmin    = Role::firstOrCreate(['name' => 'super-admin',    'guard_name' => 'web']);
+        $superAdmin     = Role::firstOrCreate(['name' => 'super-admin',    'guard_name' => 'web']);
         $administrativo = Role::firstOrCreate(['name' => 'administrativo', 'guard_name' => 'web']);
-        $ventas        = Role::firstOrCreate(['name' => 'ventas',         'guard_name' => 'web']);
-        $practicante   = Role::firstOrCreate(['name' => 'practicante',    'guard_name' => 'web']);
+        $ventas         = Role::firstOrCreate(['name' => 'ventas',         'guard_name' => 'web']);
+        $desarrollador  = Role::firstOrCreate(['name' => 'desarrollador',  'guard_name' => 'web']);
+        $practicante    = Role::firstOrCreate(['name' => 'practicante',    'guard_name' => 'web']);
 
         // Super admin: todos los permisos
         $superAdmin->syncPermissions(Permission::all());
 
-        // Administrativo: acceso operativo completo (sin configuracion.editar ni usuarios CRUD completo)
+        $superAdmin->syncPermissions(Permission::all());
+
         $administrativo->syncPermissions([
             'clientes.ver', 'clientes.crear', 'clientes.editar', 'clientes.eliminar',
             'proyectos.ver', 'proyectos.crear', 'proyectos.editar', 'proyectos.eliminar',
@@ -86,9 +93,9 @@ class RolesPermissionsSeeder extends Seeder
             'reportes.ver', 'reportes.exportar',
             'configuracion.ver',
             'usuarios.ver',
+            'sprints.ver', 'sprints.gestionar', 'sprints.daily',
         ]);
 
-        // Ventas: clientes, cotizaciones y ver proyectos/reportes
         $ventas->syncPermissions([
             'clientes.ver', 'clientes.crear', 'clientes.editar',
             'proyectos.ver',
@@ -96,10 +103,16 @@ class RolesPermissionsSeeder extends Seeder
             'reportes.ver',
         ]);
 
-        // Practicante: solo proyectos asignados y requerimientos
+        $desarrollador->syncPermissions([
+            'proyectos.ver_asignados',
+            'requerimientos.ver', 'requerimientos.crear', 'requerimientos.editar',
+            'sprints.ver', 'sprints.daily',
+        ]);
+
         $practicante->syncPermissions([
             'proyectos.ver_asignados',
             'requerimientos.ver', 'requerimientos.editar',
+            'sprints.ver', 'sprints.daily',
         ]);
 
         $this->command->info('Roles y permisos creados correctamente.');
@@ -109,6 +122,7 @@ class RolesPermissionsSeeder extends Seeder
                 ['super-admin',    Permission::count() . ' (todos)'],
                 ['administrativo', $administrativo->permissions()->count()],
                 ['ventas',         $ventas->permissions()->count()],
+                ['desarrollador',  $desarrollador->permissions()->count()],
                 ['practicante',    $practicante->permissions()->count()],
             ]
         );
