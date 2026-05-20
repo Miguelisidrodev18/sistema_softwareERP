@@ -224,11 +224,15 @@ class FacturaController extends Controller
 
             return back()->with('success', $msg);
         } catch (\Exception $e) {
+            // Extraer solo el mensaje útil (quitar prefijo técnico de la URL)
+            $rawMsg = $e->getMessage();
+            $mensaje = preg_replace('/^SUNAT API error \[.*?\] \d+:\s*/i', '', $rawMsg);
+
             $factura->update([
                 'estado_sunat'  => 'error',
-                'sunat_mensaje' => $e->getMessage(),
+                'sunat_mensaje' => $mensaje,
             ]);
-            return back()->with('error', 'Error al enviar: ' . $e->getMessage());
+            return back()->with('error', $mensaje);
         }
     }
 

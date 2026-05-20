@@ -35,9 +35,24 @@
                     @endif
                 </div>
                 @if($factura->sunat_mensaje)
-                <p class="text-xs {{ $factura->estado_sunat === 'aceptado' ? 'text-emerald-400' : 'text-red-400' }} mt-2 font-mono">
-                    SUNAT: {{ $factura->sunat_mensaje }}
-                </p>
+                @php
+                    $msgColor  = $factura->estado_sunat === 'aceptado' ? 'text-emerald-400' : 'text-red-400';
+                    $msgCorto  = Str::limit($factura->sunat_mensaje, 120);
+                    $esTrunco  = strlen($factura->sunat_mensaje) > 120;
+                @endphp
+                <div x-data="{ expandido: false }" class="mt-2">
+                    <p class="text-xs {{ $msgColor }} font-mono leading-relaxed">
+                        <span x-show="!expandido">{{ $msgCorto }}</span>
+                        <span x-show="expandido" x-cloak>{{ $factura->sunat_mensaje }}</span>
+                        @if($esTrunco)
+                        <button @click="expandido = !expandido"
+                                class="ml-1 underline opacity-60 hover:opacity-100 transition-opacity text-[10px]">
+                            <span x-show="!expandido">ver más</span>
+                            <span x-show="expandido" x-cloak>ver menos</span>
+                        </button>
+                        @endif
+                    </p>
+                </div>
                 @endif
             </div>
 
