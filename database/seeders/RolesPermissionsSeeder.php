@@ -1,0 +1,116 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
+class RolesPermissionsSeeder extends Seeder
+{
+    public function run(): void
+    {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $permissions = [
+            // Clientes
+            'clientes.ver',
+            'clientes.crear',
+            'clientes.editar',
+            'clientes.eliminar',
+
+            // Proyectos
+            'proyectos.ver',
+            'proyectos.crear',
+            'proyectos.editar',
+            'proyectos.eliminar',
+            'proyectos.ver_asignados',
+
+            // Requerimientos
+            'requerimientos.ver',
+            'requerimientos.crear',
+            'requerimientos.editar',
+
+            // Cotizaciones
+            'cotizaciones.ver',
+            'cotizaciones.crear',
+            'cotizaciones.editar',
+            'cotizaciones.aprobar',
+
+            // Facturación SUNAT
+            'facturacion.ver',
+            'facturacion.emitir',
+            'facturacion.anular',
+
+            // Caja
+            'caja.ver',
+            'caja.registrar',
+
+            // Reportes
+            'reportes.ver',
+            'reportes.exportar',
+
+            // Configuración
+            'configuracion.ver',
+            'configuracion.editar',
+
+            // Usuarios
+            'usuarios.ver',
+            'usuarios.crear',
+            'usuarios.editar',
+            'usuarios.eliminar',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        // --- Roles ---
+
+        $superAdmin    = Role::firstOrCreate(['name' => 'super-admin',    'guard_name' => 'web']);
+        $administrativo = Role::firstOrCreate(['name' => 'administrativo', 'guard_name' => 'web']);
+        $ventas        = Role::firstOrCreate(['name' => 'ventas',         'guard_name' => 'web']);
+        $practicante   = Role::firstOrCreate(['name' => 'practicante',    'guard_name' => 'web']);
+
+        // Super admin: todos los permisos
+        $superAdmin->syncPermissions(Permission::all());
+
+        // Administrativo: acceso operativo completo (sin configuracion.editar ni usuarios CRUD completo)
+        $administrativo->syncPermissions([
+            'clientes.ver', 'clientes.crear', 'clientes.editar', 'clientes.eliminar',
+            'proyectos.ver', 'proyectos.crear', 'proyectos.editar', 'proyectos.eliminar',
+            'requerimientos.ver', 'requerimientos.crear', 'requerimientos.editar',
+            'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar', 'cotizaciones.aprobar',
+            'facturacion.ver', 'facturacion.emitir', 'facturacion.anular',
+            'caja.ver', 'caja.registrar',
+            'reportes.ver', 'reportes.exportar',
+            'configuracion.ver',
+            'usuarios.ver',
+        ]);
+
+        // Ventas: clientes, cotizaciones y ver proyectos/reportes
+        $ventas->syncPermissions([
+            'clientes.ver', 'clientes.crear', 'clientes.editar',
+            'proyectos.ver',
+            'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar',
+            'reportes.ver',
+        ]);
+
+        // Practicante: solo proyectos asignados y requerimientos
+        $practicante->syncPermissions([
+            'proyectos.ver_asignados',
+            'requerimientos.ver', 'requerimientos.editar',
+        ]);
+
+        $this->command->info('Roles y permisos creados correctamente.');
+        $this->command->table(
+            ['Rol', 'Permisos'],
+            [
+                ['super-admin',    Permission::count() . ' (todos)'],
+                ['administrativo', $administrativo->permissions()->count()],
+                ['ventas',         $ventas->permissions()->count()],
+                ['practicante',    $practicante->permissions()->count()],
+            ]
+        );
+    }
+}
