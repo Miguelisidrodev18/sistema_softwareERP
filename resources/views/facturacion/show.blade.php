@@ -61,7 +61,7 @@
                 @endif
                 @endcan
 
-                @if($factura->sunat_doc_id)
+                @if($factura->sunat_doc_id && $factura->emitido_at)
                 @can('facturacion.ver')
                 <a href="{{ route('facturacion.pdf', $factura) }}" target="_blank"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
@@ -86,6 +86,10 @@
                     CDR
                 </a>
                 @endif
+                @endcan
+                @elseif($factura->sunat_doc_id && !$factura->emitido_at)
+                @can('facturacion.ver')
+                <span class="text-xs text-slate-600 italic px-2 py-2">Envía a SUNAT para descargar PDF/XML</span>
                 @endcan
                 @endif
 

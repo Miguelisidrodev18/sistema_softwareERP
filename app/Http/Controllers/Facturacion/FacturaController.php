@@ -268,12 +268,16 @@ class FacturaController extends Controller
 
     private function descargar($response, string $filename, string $mime)
     {
+        if ($response->status() === 404) {
+            return back()->with('error', 'El archivo no existe en la API. Envía el comprobante a SUNAT primero.');
+        }
         if (!$response->successful()) {
-            return back()->with('error', 'No se pudo descargar el archivo.');
+            $msg = $response->json('message') ?? 'Error al obtener el archivo de la API SUNAT.';
+            return back()->with('error', $msg);
         }
         return response($response->body(), 200, [
             'Content-Type'        => $mime,
-            'Content-Disposition' => "inline; filename=\"{$filename}\"",
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
 }
