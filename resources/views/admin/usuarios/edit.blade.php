@@ -7,7 +7,7 @@
         </div>
     </x-slot>
 
-    <div class="max-w-lg mx-auto">
+    <div class="max-w-2xl mx-auto">
         <div class="mb-6">
             <h2 class="text-xl font-bold text-white">Editar usuario</h2>
         </div>
@@ -96,6 +96,68 @@
                 </p>
             </div>
 
+            {{-- ── Permisos directos ─────────────────────────────────────────── --}}
+            <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-5"
+                 x-data="permisosUsuario()">
+
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-xs font-semibold text-white">Permisos directos</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">
+                            Azul = del rol · Verde = extra directo · Gris = del rol sin activar directo
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" @click="seleccionarTodos()"
+                                class="text-xs text-sky-400 hover:text-sky-300 transition-colors">Todo</button>
+                        <span class="text-slate-700">·</span>
+                        <button type="button" @click="limpiarDirectos()"
+                                class="text-xs text-slate-500 hover:text-slate-400 transition-colors">Solo rol</button>
+                    </div>
+                </div>
+
+                @foreach($grupos as $modulo => $permisosGrupo)
+                @php $permisosValidos = array_filter($permisosGrupo, fn($p) => in_array($p, $existentes)) @endphp
+                @if(count($permisosValidos) === 0) @continue @endif
+                <div class="mb-3">
+                    <p class="text-[9px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">{{ $modulo }}</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach($permisosValidos as $permiso)
+                        @php
+                            $etiqueta = \App\Support\PermissionGroups::etiqueta($permiso);
+                            $esDelRol = in_array($permiso, $permisosRol);
+                            $esDirect = in_array($permiso, $permisosDirect);
+                        @endphp
+                        <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg border transition-all"
+                               :class="{
+                                   'bg-sky-500/10 border-sky-500/20': rolBase['{{ $permiso }}'] && directos['{{ $permiso }}'],
+                                   'bg-emerald-500/10 border-emerald-500/20': !rolBase['{{ $permiso }}'] && directos['{{ $permiso }}'],
+                                   'bg-slate-700/20 border-slate-700/20': rolBase['{{ $permiso }}'] && !directos['{{ $permiso }}'],
+                                   'border-transparent hover:border-slate-700/30 hover:bg-slate-800/30': !rolBase['{{ $permiso }}'] && !directos['{{ $permiso }}'],
+                               }">
+                            <input type="checkbox"
+                                   name="permisos_directos[]"
+                                   value="{{ $permiso }}"
+                                   x-model="directos['{{ $permiso }}']"
+                                   class="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-sky-500
+                                          focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                            <span class="text-xs transition-colors"
+                                  :class="{
+                                      'text-sky-300':     rolBase['{{ $permiso }}'] && directos['{{ $permiso }}'],
+                                      'text-emerald-300': !rolBase['{{ $permiso }}'] && directos['{{ $permiso }}'],
+                                      'text-slate-500':   rolBase['{{ $permiso }}'] && !directos['{{ $permiso }}'],
+                                      'text-slate-400':   !rolBase['{{ $permiso }}'] && !directos['{{ $permiso }}'],
+                                  }">{{ $etiqueta }}</span>
+                            @if($esDelRol)
+                            <span class="text-[8px] text-slate-600 font-mono ml-0.5">rol</span>
+                            @endif
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
             <div class="flex items-center justify-between">
                 {{-- Desactivar --}}
                 @if($usuario->id !== auth()->id())
@@ -130,4 +192,30 @@
             </div>
         </form>
     </div>
+
+    <script>
+    function permisosUsuario() {
+        const permisosRol    = @json($permisosRol);
+        const permisosDirect = @json($permisosDirect);
+        const existentes     = @json($existentes);
+
+        const directos = {};
+        const rolBase  = {};
+        existentes.forEach(p => {
+            directos[p] = permisosDirect.includes(p);
+            rolBase[p]  = permisosRol.includes(p);
+        });
+
+        return {
+            directos,
+            rolBase,
+            seleccionarTodos() {
+                existentes.forEach(p => { this.directos[p] = true; });
+            },
+            limpiarDirectos() {
+                existentes.forEach(p => { this.directos[p] = false; });
+            },
+        };
+    }
+    </script>
 </x-app-layout>

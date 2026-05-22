@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUsuarioRequest;
 use App\Http\Requests\Admin\UpdateUsuarioRequest;
 use App\Models\User;
+use App\Support\PermissionGroups;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UsuarioController extends Controller
@@ -47,8 +49,19 @@ class UsuarioController extends Controller
 
     public function edit(User $usuario)
     {
-        $roles = Role::orderBy('name')->get();
-        return view('admin.usuarios.edit', compact('usuario', 'roles'));
+        $roles      = Role::orderBy('name')->get();
+        $grupos     = PermissionGroups::grupos();
+        $existentes = Permission::pluck('name')->toArray();
+
+        // Permisos del rol actual
+        $permisosRol = $usuario->roles->first()?->permissions->pluck('name')->toArray() ?? [];
+
+        // Permisos directos (asignados al usuario, no via rol)
+        $permisosDirect = $usuario->getDirectPermissions()->pluck('name')->toArray();
+
+        return view('admin.usuarios.edit', compact(
+            'usuario', 'roles', 'grupos', 'existentes', 'permisosRol', 'permisosDirect'
+        ));
     }
 
     public function update(UpdateUsuarioRequest $request, User $usuario)
@@ -63,8 +76,14 @@ class UsuarioController extends Controller
             $data['password'] = Hash::make($data['password']);
         }
 
+        // Permisos directos enviados (no incluye los del rol)
+        $permisosDirect = $request->input('permisos_directos', []);
+
         $usuario->update($data);
         $usuario->syncRoles([$rol]);
+        $usuario->syncPermissions($permisosDirect);  // permisos adicionales directos
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         return redirect()
             ->route('usuarios.index')
@@ -77,9 +96,7 @@ class UsuarioController extends Controller
             return back()->with('error', 'No puedes eliminar tu propio usuario.');
         }
 
-        // Desactivar en lugar de eliminar (soft-disable)
         $usuario->update(['activo' => false]);
-
         return back()->with('success', "Usuario {$usuario->name} desactivado.");
     }
 

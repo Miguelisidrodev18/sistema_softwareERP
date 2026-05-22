@@ -1,10 +1,11 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'Fix: columna status en CajaController \\(quotes usa status no estado\\) *)"
+    ],
     "additionalDirectories": [
       "C:\\xampp\\htdocs\\API-GO-Facturacion-Electronica-sunat-peru-main\\API-GO-Facturacion-Electronica-sunat-peru-main\\vendor\\greenter\\xml\\src\\Xml\\Templates"
-    ],
-    "allow": [
-      "Bash(git commit -m ' *)"
     ]
   }
 }

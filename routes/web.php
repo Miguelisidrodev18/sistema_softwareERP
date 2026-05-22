@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
@@ -197,6 +198,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/admin/usuarios/{usuario}', [UsuarioController::class, 'destroy'])->middleware('permission:usuarios.eliminar')->name('usuarios.destroy');
     Route::patch('/admin/usuarios/{usuario}/toggle', [UsuarioController::class, 'toggleActivo'])->middleware('permission:usuarios.editar')->name('usuarios.toggle');
     Route::patch('/admin/usuarios/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])->middleware('permission:usuarios.editar')->name('usuarios.reset-password');
+
+    // ── Roles ────────────────────────────────────────────────────────────
+    Route::get('/admin/roles',               [RolController::class, 'index'])->middleware('permission:usuarios.ver')->name('roles.index');
+    Route::get('/admin/roles/create',        [RolController::class, 'create'])->middleware('permission:usuarios.crear')->name('roles.create');
+    Route::post('/admin/roles',              [RolController::class, 'store'])->middleware('permission:usuarios.crear')->name('roles.store');
+    Route::get('/admin/roles/{rol}/edit',    [RolController::class, 'edit'])->middleware('permission:usuarios.editar')->name('roles.edit');
+    Route::put('/admin/roles/{rol}',         [RolController::class, 'update'])->middleware('permission:usuarios.editar')->name('roles.update');
+    Route::delete('/admin/roles/{rol}',      [RolController::class, 'destroy'])->middleware('permission:usuarios.eliminar')->name('roles.destroy');
 });
 
 // ── Estado de la API SUNAT externa ──────────────────────────────────
