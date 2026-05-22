@@ -31,7 +31,7 @@ class FacturasList extends Component
     public function render()
     {
         $facturas = Invoice::with(['client'])
-            ->when($this->conEliminados, fn($q) => $q->withTrashed())
+            ->when($this->conEliminados, fn($q) => $q->onlyTrashed())
             ->when($this->search,        fn($q) => $q->search($this->search))
             ->when($this->tipo,          fn($q) => $q->where('tipo_comprobante', $this->tipo))
             ->when($this->estadoSunat,   fn($q) => $q->where('estado_sunat', $this->estadoSunat))

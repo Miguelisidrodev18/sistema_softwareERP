@@ -34,7 +34,7 @@
                 <input type="checkbox" wire:model.live="conEliminados"
                        class="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-sky-500
                               focus:ring-0 focus:ring-offset-0 cursor-pointer">
-                <span class="text-xs text-slate-500">Eliminados</span>
+                <span class="text-xs text-slate-500">Solo eliminados</span>
             </label>
         </div>
     </div>
@@ -62,7 +62,7 @@
                                 {{ $f->tipoLabel() }}
                             </span>
                             <p class="text-xs font-bold font-mono {{ $f->trashed() ? 'line-through text-slate-500' : 'text-white' }}">
-                                {{ $f->numero_completo ?? ($f->serie . '-????') }}
+                                {{ $f->numero_completo ?: ($f->serie . '-????') }}
                             </p>
                             @if($f->trashed())
                             <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-400">Eliminado</span>

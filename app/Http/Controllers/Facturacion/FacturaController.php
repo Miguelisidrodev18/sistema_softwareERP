@@ -172,7 +172,7 @@ class FacturaController extends Controller
     public function destroy(Invoice $factura)
     {
         if (!$factura->puedeBorrarse()) {
-            return back()->with('error', 'Solo se pueden eliminar comprobantes en borrador o con error.');
+            return back()->with('error', 'No se puede eliminar: el comprobante ya tiene un número asignado en SUNAT. Para anularlo usa una Nota de Crédito.');
         }
         $factura->delete();
         return redirect()->route('facturacion.index')->with('success', 'Comprobante eliminado.');

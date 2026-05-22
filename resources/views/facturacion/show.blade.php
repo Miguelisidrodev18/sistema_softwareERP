@@ -3,7 +3,7 @@
         <div class="flex items-center gap-2 text-sm">
             <a href="{{ route('facturacion.index') }}" class="text-slate-600 hover:text-slate-400">Facturación</a>
             <span class="text-slate-700">/</span>
-            <span class="text-white font-semibold font-mono">{{ $factura->numero_completo ?? $factura->serie.'-????' }}</span>
+            <span class="text-white font-semibold font-mono">{{ $factura->numero_completo ?: $factura->serie.'-????' }}</span>
         </div>
     </x-slot>
 
@@ -27,7 +27,7 @@
                         {{ $factura->tipoLabel() }}
                     </span>
                     <h1 class="text-xl font-bold font-mono text-white">
-                        {{ $factura->numero_completo ?? ($factura->serie . '-' . str_pad($factura->correlativo ?? '????', 8, '0', STR_PAD_LEFT)) }}
+                        {{ $factura->numero_completo ?: ($factura->serie . '-' . str_pad($factura->correlativo ?: '????', 8, '0', STR_PAD_LEFT)) }}
                     </h1>
                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $factura->estadoBadgeClass() }}">
                         {{ $factura->estadoLabel() }}

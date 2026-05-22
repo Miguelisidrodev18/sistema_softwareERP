@@ -111,7 +111,10 @@ class Invoice extends Model
 
     public function puedeBorrarse(): bool
     {
-        return in_array($this->estado_sunat, ['borrador', 'error']);
+        // Solo si nunca fue registrado en la API SUNAT (sin correlativo asignado).
+        // Un comprobante con sunat_doc_id ya tiene número en SUNAT y debe anularse
+        // con Nota de Crédito, no eliminarse.
+        return is_null($this->sunat_doc_id) && $this->estado_sunat === 'borrador';
     }
 
     // ── Scope ────────────────────────────────────────────────────────
