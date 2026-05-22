@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quote;
+use App\Models\QuotePayment;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,9 @@ class DashboardController extends Controller
                 'clientes_total'    => Client::count(),
                 // Cotizaciones: enviadas + aceptadas (oportunidades abiertas)
                 'cotiz_pendientes'  => Quote::whereIn('status', self::COTIZ_ACTIVAS)->count(),
+                // Por cobrar: cuotas pendientes de cotizaciones
+                'por_cobrar'        => (float) QuotePayment::where('estado', 'pendiente')->sum('monto'),
+                'cuotas_pendientes' => QuotePayment::where('estado', 'pendiente')->count(),
             ];
         });
 
@@ -120,6 +124,14 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Próximos cobros pendientes (cuotas con fecha o sin fecha, ordenadas)
+        $proximosCobros = QuotePayment::with(['quote.client'])
+            ->where('estado', 'pendiente')
+            ->orderByRaw('fecha_vencimiento IS NULL ASC')
+            ->orderBy('fecha_vencimiento')
+            ->limit(6)
+            ->get();
+
         return view('dashboard', compact(
             'kpis',
             'flujoCaja',
@@ -129,6 +141,7 @@ class DashboardController extends Controller
             'ultimasFacturas',
             'movimientosRecientes',
             'cotizacionesActivas',
+            'proximosCobros',
         ));
     }
 }

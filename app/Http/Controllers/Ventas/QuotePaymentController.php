@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashMovement;
 use App\Models\Quote;
 use App\Models\QuotePayment;
+use Illuminate\Support\Facades\DB;
 
 class QuotePaymentController extends Controller
 {
@@ -59,29 +61,69 @@ class QuotePaymentController extends Controller
             'notas'       => ['nullable', 'string'],
         ]);
 
-        $pago->update([
-            'estado'      => 'pagada',
-            'fecha_pago'  => $data['fecha_pago'] ? $data['fecha_pago'] : now(),
-            'metodo_pago' => $data['metodo_pago'],
-            'notas'       => $data['notas'] ?? $pago->notas,
-        ]);
+        DB::transaction(function () use ($cotizacion, $pago, $data) {
+            $fechaPago = $data['fecha_pago'] ? $data['fecha_pago'] : now()->toDateString();
 
-        // Si todas las cuotas están pagadas, actualizar cotización
-        if ($cotizacion->payments()->where('estado', '!=', 'pagada')->doesntExist()) {
-            $cotizacion->update(['status' => 'facturado']);
-        }
+            // Crear movimiento de caja automáticamente
+            $movimiento = CashMovement::create([
+                'tipo'        => 'ingreso',
+                'concepto'    => "Cobro {$pago->nombre} — {$cotizacion->numero}",
+                'monto'       => $pago->monto,
+                'moneda'      => $cotizacion->moneda ?? 'PEN',
+                'metodo_pago' => $this->normalizarMetodo($data['metodo_pago'] ?? 'efectivo'),
+                'fecha'       => $fechaPago,
+                'categoria'   => 'cobro_cliente',
+                'client_id'   => $cotizacion->client_id,
+                'quote_id'    => $cotizacion->id,
+                'user_id'     => auth()->id(),
+                'notas'       => $data['notas'] ?? null,
+            ]);
 
-        return back()->with('success', 'Cuota marcada como pagada.');
+            $pago->update([
+                'estado'           => 'pagada',
+                'fecha_pago'       => $fechaPago,
+                'metodo_pago'      => $data['metodo_pago'],
+                'notas'            => $data['notas'] ?? $pago->notas,
+                'cash_movement_id' => $movimiento->id,
+            ]);
+
+            // Si todas las cuotas están pagadas → cotización pagada
+            if ($cotizacion->payments()->where('estado', '!=', 'pagada')->doesntExist()) {
+                $cotizacion->update(['status' => 'facturado']);
+            }
+        });
+
+        return back()->with('success', 'Cuota marcada como pagada y registrada en caja.');
     }
 
     // ── Desmarcar pago ────────────────────────────────────────────────
     public function desmarcarPagado(Quote $cotizacion, QuotePayment $pago)
     {
-        $pago->update([
-            'estado'     => 'pendiente',
-            'fecha_pago' => null,
-        ]);
-        return back()->with('success', 'Pago revertido a pendiente.');
+        DB::transaction(function () use ($pago) {
+            // Eliminar el movimiento de caja vinculado
+            if ($pago->cash_movement_id) {
+                CashMovement::find($pago->cash_movement_id)?->delete();
+            }
+
+            $pago->update([
+                'estado'           => 'pendiente',
+                'fecha_pago'       => null,
+                'cash_movement_id' => null,
+            ]);
+        });
+
+        return back()->with('success', 'Pago revertido a pendiente y eliminado de caja.');
+    }
+
+    private function normalizarMetodo(?string $metodo): string
+    {
+        $mapa = [
+            'yape' => 'yape', 'plin' => 'plin',
+            'transferencia' => 'transferencia', 'transfer' => 'transferencia',
+            'tarjeta' => 'tarjeta', 'efectivo' => 'efectivo',
+            'cheque' => 'cheque',
+        ];
+        return $mapa[strtolower($metodo ?? '')] ?? 'efectivo';
     }
 
     // ── Eliminar cuota ────────────────────────────────────────────────

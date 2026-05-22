@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class QuotePayment extends Model
 {
     protected $fillable = [
-        'quote_id', 'invoice_id', 'nombre', 'porcentaje', 'monto',
+        'quote_id', 'invoice_id', 'cash_movement_id',
+        'nombre', 'porcentaje', 'monto',
         'fecha_vencimiento', 'fecha_pago', 'estado',
         'metodo_pago', 'notas', 'orden',
     ];
