@@ -26,7 +26,7 @@ class CajaController extends Controller
             ->with('client')
             ->orderByDesc('fecha_emision')
             ->get(['id', 'serie', 'correlativo', 'tipo_comprobante', 'total', 'client_id']);
-        $cotizaciones = Quote::whereIn('estado', ['aprobada', 'pagada_parcial'])
+        $cotizaciones = Quote::whereIn('status', ['enviado', 'aceptado'])
             ->with('client')
             ->orderByDesc('created_at')
             ->get(['id', 'numero', 'total', 'client_id']);
