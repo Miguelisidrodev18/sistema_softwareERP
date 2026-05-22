@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(Get-Content \"c:\\\\xampp\\\\htdocs\\\\estelar_erp\\\\storage\\\\logs\\\\laravel.log\" -Tail 40)"
+    ]
+  }
+}

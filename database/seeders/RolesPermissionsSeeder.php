@@ -46,7 +46,15 @@ class RolesPermissionsSeeder extends Seeder
 
             // Caja
             'caja.ver',
-            'caja.registrar',
+            'caja.crear',
+            'caja.editar',
+            'caja.eliminar',
+
+            // Entregas de proyectos
+            'entregas.ver',
+            'entregas.crear',
+            'entregas.editar',
+            'entregas.eliminar',
 
             // Reportes
             'reportes.ver',
@@ -92,7 +100,8 @@ class RolesPermissionsSeeder extends Seeder
             'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar',
             'cotizaciones.eliminar', 'cotizaciones.aprobar', 'cotizaciones.pdf',
             'facturacion.ver', 'facturacion.emitir', 'facturacion.anular',
-            'caja.ver', 'caja.registrar',
+            'caja.ver', 'caja.crear', 'caja.editar', 'caja.eliminar',
+            'entregas.ver', 'entregas.crear', 'entregas.editar', 'entregas.eliminar',
             'reportes.ver', 'reportes.exportar',
             'configuracion.ver',
             'usuarios.ver',
@@ -104,6 +113,7 @@ class RolesPermissionsSeeder extends Seeder
             'proyectos.ver',
             'cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar',
             'cotizaciones.aprobar', 'cotizaciones.pdf',
+            'entregas.ver',
             'reportes.ver',
         ]);
 

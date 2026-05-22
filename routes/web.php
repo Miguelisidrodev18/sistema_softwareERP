@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\ConfigController;
+use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
+use App\Http\Controllers\Entregas\EntregaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Proyectos\DailyReportController;
 use App\Http\Controllers\Proyectos\ProyectoController;
@@ -159,8 +161,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/facturacion/{factura}/pdf',         [FacturaController::class, 'descargarPdf'])->middleware('permission:facturacion.ver')->name('facturacion.pdf');
     Route::get('/facturacion/{factura}/xml',         [FacturaController::class, 'descargarXml'])->middleware('permission:facturacion.ver')->name('facturacion.xml');
     Route::get('/facturacion/{factura}/cdr',         [FacturaController::class, 'descargarCdr'])->middleware('permission:facturacion.ver')->name('facturacion.cdr');
-    Route::get('/caja',             fn() => $proximamente('Caja', 5))->name('caja.index');
-    Route::get('/entregas',         fn() => $proximamente('Entregas', 5))->name('entregas.index');
+    // ── Caja ────────────────────────────────────────────────────────────
+    Route::get('/caja',                    [CajaController::class, 'index'])->middleware('permission:caja.ver')->name('caja.index');
+    Route::get('/caja/create',             [CajaController::class, 'create'])->middleware('permission:caja.crear')->name('caja.create');
+    Route::post('/caja',                   [CajaController::class, 'store'])->middleware('permission:caja.crear')->name('caja.store');
+    Route::get('/caja/{movimiento}',       [CajaController::class, 'show'])->middleware('permission:caja.ver')->name('caja.show');
+    Route::get('/caja/{movimiento}/edit',  [CajaController::class, 'edit'])->middleware('permission:caja.editar')->name('caja.edit');
+    Route::put('/caja/{movimiento}',       [CajaController::class, 'update'])->middleware('permission:caja.editar')->name('caja.update');
+    Route::delete('/caja/{movimiento}',    [CajaController::class, 'destroy'])->middleware('permission:caja.eliminar')->name('caja.destroy');
+
+    // ── Entregas ─────────────────────────────────────────────────────────
+    Route::get('/entregas',                  [EntregaController::class, 'index'])->middleware('permission:entregas.ver')->name('entregas.index');
+    Route::get('/entregas/create',           [EntregaController::class, 'create'])->middleware('permission:entregas.crear')->name('entregas.create');
+    Route::post('/entregas',                 [EntregaController::class, 'store'])->middleware('permission:entregas.crear')->name('entregas.store');
+    Route::get('/entregas/{entrega}',        [EntregaController::class, 'show'])->middleware('permission:entregas.ver')->name('entregas.show');
+    Route::get('/entregas/{entrega}/edit',   [EntregaController::class, 'edit'])->middleware('permission:entregas.editar')->name('entregas.edit');
+    Route::put('/entregas/{entrega}',        [EntregaController::class, 'update'])->middleware('permission:entregas.editar')->name('entregas.update');
+    Route::delete('/entregas/{entrega}',     [EntregaController::class, 'destroy'])->middleware('permission:entregas.eliminar')->name('entregas.destroy');
+    Route::get('/entregas/{entrega}/acta',   [EntregaController::class, 'acta'])->middleware('permission:entregas.ver')->name('entregas.acta');
     Route::get('/reportes',         fn() => $proximamente('Reportes', 6))->name('reportes.index');
     Route::get('/configuracion', [ConfigController::class, 'index'])
         ->middleware('permission:configuracion.ver')

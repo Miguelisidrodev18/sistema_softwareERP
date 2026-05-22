@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "C:\\xampp\\htdocs\\API-GO-Facturacion-Electronica-sunat-peru-main\\API-GO-Facturacion-Electronica-sunat-peru-main\\vendor\\greenter\\xml\\src\\Xml\\Templates"
+    ]
+  }
+}
