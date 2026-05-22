@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
 use App\Http\Controllers\Entregas\EntregaController;
@@ -187,7 +188,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/configuracion', [ConfigController::class, 'update'])
         ->middleware('permission:configuracion.editar')
         ->name('configuracion.update');
-    Route::get('/admin/usuarios',   fn() => $proximamente('Usuarios', 1))->name('usuarios.index');
+    // ── Usuarios (admin) ────────────────────────────────────────────────
+    Route::get('/admin/usuarios',              [UsuarioController::class, 'index'])->middleware('permission:usuarios.ver')->name('usuarios.index');
+    Route::get('/admin/usuarios/create',       [UsuarioController::class, 'create'])->middleware('permission:usuarios.crear')->name('usuarios.create');
+    Route::post('/admin/usuarios',             [UsuarioController::class, 'store'])->middleware('permission:usuarios.crear')->name('usuarios.store');
+    Route::get('/admin/usuarios/{usuario}/edit', [UsuarioController::class, 'edit'])->middleware('permission:usuarios.editar')->name('usuarios.edit');
+    Route::put('/admin/usuarios/{usuario}',    [UsuarioController::class, 'update'])->middleware('permission:usuarios.editar')->name('usuarios.update');
+    Route::delete('/admin/usuarios/{usuario}', [UsuarioController::class, 'destroy'])->middleware('permission:usuarios.eliminar')->name('usuarios.destroy');
+    Route::patch('/admin/usuarios/{usuario}/toggle', [UsuarioController::class, 'toggleActivo'])->middleware('permission:usuarios.editar')->name('usuarios.toggle');
+    Route::patch('/admin/usuarios/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])->middleware('permission:usuarios.editar')->name('usuarios.reset-password');
 });
 
 // ── Estado de la API SUNAT externa ──────────────────────────────────

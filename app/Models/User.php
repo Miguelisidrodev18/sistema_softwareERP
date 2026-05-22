@@ -21,9 +21,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'cargo', 'email', 'password', 'activo',
     ];
 
     /**
@@ -45,8 +43,26 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'activo'            => 'boolean',
         ];
+    }
+
+    public function rolLabel(): string
+    {
+        return $this->roles->first()?->name ?? 'sin rol';
+    }
+
+    public function rolBadgeClass(): string
+    {
+        return match ($this->roles->first()?->name) {
+            'super-admin'    => 'bg-violet-500/15 text-violet-400',
+            'administrativo' => 'bg-sky-500/15 text-sky-400',
+            'ventas'         => 'bg-emerald-500/15 text-emerald-400',
+            'desarrollador'  => 'bg-amber-500/15 text-amber-400',
+            'practicante'    => 'bg-slate-500/15 text-slate-400',
+            default          => 'bg-slate-700 text-slate-500',
+        };
     }
 
     public function responsibleProjects(): HasMany
