@@ -101,7 +101,7 @@
                 </span>
             </div>
             <p class="text-2xl font-bold text-white font-mono">{{ $kpis['proyectos_activos'] }}</p>
-            <p class="text-xs text-slate-500 mt-1">Proyectos en curso</p>
+            <p class="text-xs text-slate-500 mt-1">Proyectos activos</p>
         </div>
 
         {{-- Facturación del mes --}}
@@ -120,7 +120,7 @@
             <p class="text-xs text-slate-500 mt-1">{{ $kpis['facturas_mes'] }} comprobante{{ $kpis['facturas_mes'] !== 1 ? 's' : '' }} emitido{{ $kpis['facturas_mes'] !== 1 ? 's' : '' }}</p>
         </div>
 
-        {{-- Clientes + cotizaciones pendientes --}}
+        {{-- Clientes + cotizaciones activas --}}
         <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-5
                     hover:border-cyan-500/20 transition-colors duration-300 group">
             <div class="flex items-start justify-between mb-4">
@@ -132,7 +132,7 @@
                 </div>
                 @if($kpis['cotiz_pendientes'] > 0)
                 <span class="text-xs font-mono px-2 py-0.5 rounded-lg text-amber-400 bg-amber-500/10">
-                    {{ $kpis['cotiz_pendientes'] }} pendiente{{ $kpis['cotiz_pendientes'] !== 1 ? 's' : '' }}
+                    {{ $kpis['cotiz_pendientes'] }} cotiz. activa{{ $kpis['cotiz_pendientes'] !== 1 ? 's' : '' }}
                 </span>
                 @endif
             </div>
@@ -334,12 +334,12 @@
             @endforelse
         </div>
 
-        {{-- Cotizaciones esperando respuesta --}}
+        {{-- Cotizaciones activas --}}
         <div class="bg-slate-900 border border-slate-800/60 rounded-2xl p-5">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="text-sm font-semibold text-white">Cotizaciones enviadas</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Esperando respuesta del cliente</p>
+                    <h3 class="text-sm font-semibold text-white">Cotizaciones activas</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Enviadas y aceptadas en curso</p>
                 </div>
                 @can('cotizaciones.ver')
                 <a href="{{ route('cotizaciones.index') }}" class="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1">
@@ -350,7 +350,7 @@
                 </a>
                 @endcan
             </div>
-            @forelse($cotizacionesPendientes as $q)
+            @forelse($cotizacionesActivas as $q)
             <a href="{{ route('cotizaciones.show', $q) }}"
                class="flex items-center justify-between py-2.5 px-1 rounded-lg hover:bg-slate-800/50 transition-colors -mx-1 group">
                 <div class="min-w-0 flex-1">
@@ -358,6 +358,9 @@
                         <p class="text-xs font-mono font-bold text-white group-hover:text-sky-300 transition-colors">
                             {{ $q->numero }}
                         </p>
+                        <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded {{ $q->statusBadgeClass() }}">
+                            {{ strtoupper($q->statusLabel()) }}
+                        </span>
                         @if($q->estaVencida())
                         <span class="text-[9px] font-semibold text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">VENCIDA</span>
                         @endif
@@ -376,7 +379,7 @@
                 <svg class="w-8 h-8 text-slate-700 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                 </svg>
-                <p class="text-slate-600 text-sm">Sin cotizaciones pendientes</p>
+                <p class="text-slate-600 text-sm">Sin cotizaciones activas</p>
             </div>
             @endforelse
         </div>
