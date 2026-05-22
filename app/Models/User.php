@@ -69,4 +69,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Project::class, 'responsible_user_id');
     }
+
+    public function payrollPayments(): HasMany
+    {
+        return $this->hasMany(\App\Models\PayrollPayment::class);
+    }
 }

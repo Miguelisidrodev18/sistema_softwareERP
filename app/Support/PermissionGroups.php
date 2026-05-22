@@ -16,6 +16,7 @@ class PermissionGroups
             'Facturación'    => ['facturacion.ver', 'facturacion.emitir', 'facturacion.anular'],
             'Caja'           => ['caja.ver', 'caja.crear', 'caja.editar', 'caja.eliminar'],
             'Entregas'       => ['entregas.ver', 'entregas.crear', 'entregas.editar', 'entregas.eliminar'],
+            'Planilla'       => ['planilla.ver', 'planilla.crear', 'planilla.pagar', 'planilla.eliminar'],
             'Reportes'       => ['reportes.ver', 'reportes.exportar'],
             'Configuración'  => ['configuracion.ver', 'configuracion.editar'],
             'Usuarios'       => ['usuarios.ver', 'usuarios.crear', 'usuarios.editar', 'usuarios.eliminar'],
@@ -39,6 +40,7 @@ class PermissionGroups
             'exportar'      => 'Exportar',
             'gestionar'     => 'Gestionar',
             'daily'         => 'Daily report',
+            'pagar'         => 'Pagar/revertir',
         ];
     }
 

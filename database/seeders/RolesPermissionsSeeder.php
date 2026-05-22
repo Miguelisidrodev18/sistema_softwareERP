@@ -56,6 +56,12 @@ class RolesPermissionsSeeder extends Seeder
             'entregas.editar',
             'entregas.eliminar',
 
+            // Planilla
+            'planilla.ver',
+            'planilla.crear',
+            'planilla.pagar',
+            'planilla.eliminar',
+
             // Reportes
             'reportes.ver',
             'reportes.exportar',
@@ -102,6 +108,7 @@ class RolesPermissionsSeeder extends Seeder
             'facturacion.ver', 'facturacion.emitir', 'facturacion.anular',
             'caja.ver', 'caja.crear', 'caja.editar', 'caja.eliminar',
             'entregas.ver', 'entregas.crear', 'entregas.editar', 'entregas.eliminar',
+            'planilla.ver', 'planilla.crear', 'planilla.pagar', 'planilla.eliminar',
             'reportes.ver', 'reportes.exportar',
             'configuracion.ver',
             'usuarios.ver',

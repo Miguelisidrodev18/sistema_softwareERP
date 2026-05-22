@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RolController;
+use App\Http\Controllers\Planilla\PlanillaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
@@ -183,6 +184,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/entregas/{entrega}',     [EntregaController::class, 'destroy'])->middleware('permission:entregas.eliminar')->name('entregas.destroy');
     Route::get('/entregas/{entrega}/acta',   [EntregaController::class, 'acta'])->middleware('permission:entregas.ver')->name('entregas.acta');
     Route::get('/reportes',         fn() => $proximamente('Reportes', 6))->name('reportes.index');
+
+    // ── Planilla ─────────────────────────────────────────────────────────
+    Route::get('/planilla',                    [PlanillaController::class, 'index'])->middleware('permission:planilla.ver')->name('planilla.index');
+    Route::get('/planilla/create',             [PlanillaController::class, 'create'])->middleware('permission:planilla.crear')->name('planilla.create');
+    Route::post('/planilla',                   [PlanillaController::class, 'store'])->middleware('permission:planilla.crear')->name('planilla.store');
+    Route::get('/planilla/{planilla}',         [PlanillaController::class, 'show'])->middleware('permission:planilla.ver')->name('planilla.show');
+    Route::patch('/planilla/{planilla}/pagar', [PlanillaController::class, 'pagar'])->middleware('permission:planilla.pagar')->name('planilla.pagar');
+    Route::patch('/planilla/{planilla}/revertir', [PlanillaController::class, 'revertir'])->middleware('permission:planilla.pagar')->name('planilla.revertir');
+    Route::delete('/planilla/{planilla}',      [PlanillaController::class, 'destroy'])->middleware('permission:planilla.eliminar')->name('planilla.destroy');
     Route::get('/configuracion', [ConfigController::class, 'index'])
         ->middleware('permission:configuracion.ver')
         ->name('configuracion.index');
