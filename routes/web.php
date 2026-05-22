@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ConfigController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
 use App\Http\Controllers\Entregas\EntregaController;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
 
-Route::get('/dashboard', fn () => view('dashboard'))
+Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
