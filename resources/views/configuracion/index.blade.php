@@ -27,7 +27,7 @@
             async buscarRuc() {
                 this.buscando = true; this.errorRuc = ''; this.encontrado = false;
                 try {
-                    const r = await fetch(`/api/consulta-documento?tipo=RUC&numero=${this.ruc}`, {
+                    const r = await fetch(`{{ url('/api/consulta-documento') }}?tipo=RUC&numero=${this.ruc}`, {
                         headers: { 'Accept':'application/json',
                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
                     });
@@ -349,7 +349,7 @@
                      async checkApi() {
                          this.checking = true; this.apiStatus = null;
                          try {
-                             const r = await fetch('/api/sunat-api-status', {
+                             const r = await fetch('{{ url('/api/sunat-api-status') }}', {
                                  headers: { 'Accept': 'application/json',
                                             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
                              });

@@ -44,7 +44,7 @@
 
             try {
                 const res = await fetch(
-                    `/api/consulta-documento?tipo=${this.tipoDocumento}&numero=${this.numeroDocumento}`,
+                    `{{ url('/api/consulta-documento') }}?tipo=${this.tipoDocumento}&numero=${this.numeroDocumento}`,
                     {
                         headers: {
                             'Accept': 'application/json',
