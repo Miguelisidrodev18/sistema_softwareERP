@@ -26,10 +26,13 @@
         <div class="relative z-10 w-full max-w-lg">
 
             {{-- Logotipo --}}
+            @php $config = \App\Models\EmpresaConfig::config(); $logoUrl = $config->logoLoginUrl(); @endphp
             <div class="flex items-center gap-4 mb-12">
+                @if($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="Logo" class="h-14 w-auto object-contain flex-shrink-0">
+                @else
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-500
                             flex items-center justify-center shadow-[0_0_35px_rgba(14,165,233,0.5)] flex-shrink-0">
-                    {{-- Ícono DB/ERP --}}
                     <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375
@@ -38,9 +41,10 @@
                                  m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
                     </svg>
                 </div>
+                @endif
                 <div>
                     <h1 class="text-3xl font-bold text-white tracking-tight leading-tight">
-                        Estelar <span class="text-sky-400">ERP</span>
+                        {{ $config->nombre_comercial ?: 'Estelar' }} <span class="text-sky-400">ERP</span>
                     </h1>
                     <p class="text-slate-500 text-sm font-light">Software Empresarial</p>
                 </div>
