@@ -176,7 +176,7 @@
     <div class="main-container"><nav id="navbar">
     <div class="nav-inner">
         <a href="#inicio" class="logo-wrap">
-        <div style="height:68px;display:flex;align-items:center;animation:logoGlow 3.5s ease-in-out infinite"><img src="img/logo_final.png" alt="ESTELAR" height="58" style="height:98px;width:auto;display:block;object-fit:contain"></div>
+        <div style="height:68px;display:flex;align-items:center;animation:logoGlow 3.5s ease-in-out infinite"><img src="{{ asset('img/logo_final.png') }}" alt="ESTELAR" height="58" style="height:98px;width:auto;display:block;object-fit:contain"></div>
         </a>
         <ul class="nav-links" id="navLinks">
         <li><a href="#inicio">Inicio</a></li>
@@ -483,7 +483,7 @@
     <div class="footer-inner">
         <div class="footer-brand">
         <a href="#inicio" class="logo-wrap">
-            <div style="height:50px;display:flex;align-items:center;animation:logoGlow 3.5s ease-in-out infinite"><img src="img/logo_final.png" alt="ESTELAR" height="50" style="height:50px;width:auto;display:block;object-fit:contain"></div>
+            <div style="height:50px;display:flex;align-items:center;animation:logoGlow 3.5s ease-in-out infinite"><img src="{{ asset('img/logo_final.png') }}" alt="ESTELAR" height="50" style="height:50px;width:auto;display:block;object-fit:contain"></div>
         </a>
         <p>Plataforma de automatizaci&oacute;n empresarial con IA. Transformamos operaciones en ventajas competitivas.</p>
         <div class="social-links" style="margin-top:1.2rem">
