@@ -10,6 +10,8 @@ class Solicitud extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'solicitudes';
+
     protected $fillable = [
         'user_id', 'tipo', 'titulo', 'descripcion', 'monto',
         'estado', 'respuesta_admin', 'atendido_por', 'atendido_at',
