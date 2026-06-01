@@ -10,6 +10,7 @@ use App\Models\QuotePayment;
 use App\Models\Requirement;
 use App\Models\Solicitud;
 use App\Models\Sprint;
+use App\Policies\AsistenciaPolicy;
 use App\Policies\ClientePolicy;
 use App\Policies\ProyectoPolicy;
 use App\Policies\RequerimientoPolicy;
@@ -29,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Project::class,      ProyectoPolicy::class);
         Gate::policy(Requirement::class,  RequerimientoPolicy::class);
         Gate::policy(Solicitud::class,    SolicitudPolicy::class);
+        Gate::define('asistencias.ver',       [AsistenciaPolicy::class, 'ver']);
+        Gate::define('asistencias.registrar', [AsistenciaPolicy::class, 'registrar']);
+        Gate::define('asistencias.gestionar', [AsistenciaPolicy::class, 'gestionar']);
 
         // Route model bindings en español
         Route::model('cliente',       Client::class);

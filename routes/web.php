@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Reportes\ReporteController;
 use App\Http\Controllers\Solicitudes\SolicitudController;
+use App\Http\Controllers\Asistencias\AsistenciaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Planilla\PlanillaController;
@@ -217,6 +218,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/admin/usuarios/{usuario}', [UsuarioController::class, 'destroy'])->middleware('permission:usuarios.eliminar')->name('usuarios.destroy');
     Route::patch('/admin/usuarios/{usuario}/toggle', [UsuarioController::class, 'toggleActivo'])->middleware('permission:usuarios.editar')->name('usuarios.toggle');
     Route::patch('/admin/usuarios/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])->middleware('permission:usuarios.editar')->name('usuarios.reset-password');
+
+    // ── Asistencias ─────────────────────────────────────────────────────
+    Route::get('/asistencias',         [AsistenciaController::class, 'index'])->middleware('permission:asistencias.ver|asistencias.gestionar')->name('asistencias.index');
+    Route::get('/asistencias/marcar',  [AsistenciaController::class, 'marcar'])->middleware('permission:asistencias.registrar')->name('asistencias.marcar');
+    Route::post('/asistencias/marcar', [AsistenciaController::class, 'registrar'])->middleware('permission:asistencias.registrar')->name('asistencias.registrar');
+    Route::get('/asistencias/config',  [AsistenciaController::class, 'configGeo'])->middleware('permission:asistencias.gestionar')->name('asistencias.config');
+    Route::post('/asistencias/config', [AsistenciaController::class, 'guardarConfigGeo'])->middleware('permission:asistencias.gestionar')->name('asistencias.config.save');
 
     // ── Solicitudes internas ────────────────────────────────────────────
     Route::get('/solicitudes',                       [SolicitudController::class, 'index'])->middleware('permission:solicitudes.ver|solicitudes.gestionar')->name('solicitudes.index');

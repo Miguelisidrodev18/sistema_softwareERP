@@ -85,6 +85,11 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.ver',       // ver propias solicitudes
             'solicitudes.crear',     // crear solicitud
             'solicitudes.gestionar', // ver todas, aprobar/rechazar/entregar
+
+            // Asistencias
+            'asistencias.ver',       // ver propio reporte mensual
+            'asistencias.registrar', // marcar entrada/salida
+            'asistencias.gestionar', // ver todo el equipo + configurar geo
         ];
 
         foreach ($permissions as $permission) {
@@ -119,6 +124,7 @@ class RolesPermissionsSeeder extends Seeder
             'usuarios.ver',
             'sprints.ver', 'sprints.gestionar', 'sprints.daily',
             'solicitudes.gestionar',
+            'asistencias.gestionar',
         ]);
 
         $ventas->syncPermissions([
@@ -129,6 +135,7 @@ class RolesPermissionsSeeder extends Seeder
             'entregas.ver',
             'reportes.ver',
             'solicitudes.ver', 'solicitudes.crear',
+            'asistencias.ver', 'asistencias.registrar',
         ]);
 
         $desarrollador->syncPermissions([
@@ -136,6 +143,7 @@ class RolesPermissionsSeeder extends Seeder
             'requerimientos.ver', 'requerimientos.crear', 'requerimientos.editar',
             'sprints.ver', 'sprints.daily',
             'solicitudes.ver', 'solicitudes.crear',
+            'asistencias.ver', 'asistencias.registrar',
         ]);
 
         $practicante->syncPermissions([
@@ -143,6 +151,7 @@ class RolesPermissionsSeeder extends Seeder
             'requerimientos.ver', 'requerimientos.editar',
             'sprints.ver', 'sprints.daily',
             'solicitudes.ver', 'solicitudes.crear',
+            'asistencias.ver', 'asistencias.registrar',
         ]);
 
         $this->command->info('Roles y permisos creados correctamente.');
