@@ -10,12 +10,13 @@ class Asistencia extends Model
     protected $fillable = [
         'user_id', 'tipo', 'fecha', 'hora',
         'latitud', 'longitud', 'distancia_metros',
-        'radio_configurado', 'ip_address', 'observaciones',
+        'radio_configurado', 'ip_address', 'justificada', 'observaciones',
     ];
 
     protected $casts = [
-        'fecha'             => 'date',
-        'distancia_metros'  => 'decimal:2',
+        'fecha'            => 'date',
+        'distancia_metros' => 'decimal:2',
+        'justificada'      => 'boolean',
     ];
 
     public function empleado(): BelongsTo

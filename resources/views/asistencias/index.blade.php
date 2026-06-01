@@ -272,21 +272,41 @@
                             @elseif($esFuturo)
                                 <span class="text-xs text-slate-700">—</span>
                             @elseif($ent && $sal)
-                                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">✓ Completo</span>
+                                @if($ent->justificada || $sal->justificada)
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">✓ Justificado</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">✓ Presente</span>
+                                @endif
                             @elseif($ent)
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">Solo entrada</span>
-                                    @if(!$justSal && !$esGestor && !$esFuturo)
-                                    <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'salida']) }}"
-                                       class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">justificar</a>
-                                    @endif
-                                </div>
+                                @if($ent->justificada)
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">✓ Just. entrada</span>
+                                        @if(!$justSal && !$esGestor)
+                                        <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'salida']) }}"
+                                           class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">just. salida</a>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400">Solo entrada</span>
+                                        @if(!$justSal && !$esGestor && !$esFuturo)
+                                        <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'salida']) }}"
+                                           class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">justificar</a>
+                                        @endif
+                                    </div>
+                                @endif
                             @else
                                 <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">Falta</span>
-                                    @if(!$justEnt && !$esGestor && !$esFuturo)
-                                    <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'entrada']) }}"
-                                       class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">justificar</a>
+                                    @if($justEnt && $justEnt->estado === 'pendiente')
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">⏳ Pendiente</span>
+                                    @elseif($justEnt && $justEnt->estado === 'rechazado')
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">✗ Rechazado</span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">Falta</span>
+                                        @if(!$justEnt && !$esGestor && !$esFuturo)
+                                        <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'entrada']) }}"
+                                           class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">justificar</a>
+                                        @endif
                                     @endif
                                 </div>
                             @endif

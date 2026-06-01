@@ -217,11 +217,11 @@ class AsistenciaController extends Controller
 
         $request->validate(['respuesta_admin' => ['nullable', 'string', 'max:400']]);
 
-        // Crear el registro de asistencia
+        // Crear el registro de asistencia marcado como justificado
         $asistencia = Asistencia::firstOrCreate(
             [
                 'user_id' => $justificacion->user_id,
-                'fecha'   => $justificacion->fecha,
+                'fecha'   => $justificacion->fecha->format('Y-m-d'),
                 'tipo'    => $justificacion->tipo,
             ],
             [
@@ -230,9 +230,15 @@ class AsistenciaController extends Controller
                 'longitud'          => 0,
                 'distancia_metros'  => 0,
                 'radio_configurado' => 0,
-                'observaciones'     => 'Aprobado por justificación: ' . $justificacion->motivo,
+                'justificada'       => true,
+                'observaciones'     => $justificacion->motivo,
             ]
         );
+
+        // Si ya existía el registro, marcarlo como justificado
+        if (!$asistencia->wasRecentlyCreated) {
+            $asistencia->update(['justificada' => true]);
+        }
 
         $justificacion->update([
             'estado'          => 'aprobado',
@@ -242,7 +248,11 @@ class AsistenciaController extends Controller
             'asistencia_id'   => $asistencia->id,
         ]);
 
-        return back()->with('success', 'Justificación aprobada y asistencia registrada.');
+        return redirect()->route('asistencias.index', [
+            'usuario_id' => $justificacion->user_id,
+            'mes'        => $justificacion->fecha->month,
+            'anio'       => $justificacion->fecha->year,
+        ])->with('success', 'Justificación aprobada — asistencia registrada para ' . $justificacion->empleado->name . '.');
     }
 
     public function rechazarJustificacion(Request $request, Justificacion $justificacion)
@@ -258,7 +268,11 @@ class AsistenciaController extends Controller
             'atendido_at'     => now(),
         ]);
 
-        return back()->with('success', 'Justificación rechazada.');
+        return redirect()->route('asistencias.index', [
+            'usuario_id' => $justificacion->user_id,
+            'mes'        => $justificacion->fecha->month,
+            'anio'       => $justificacion->fecha->year,
+        ])->with('success', 'Justificación rechazada.');
     }
 
     // ── Config geo (admin) ────────────────────────────────────────────
