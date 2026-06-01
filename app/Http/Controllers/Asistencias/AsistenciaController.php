@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Asistencias;
 use App\Http\Controllers\Controller;
 use App\Models\Asistencia;
 use App\Models\EmpresaConfig;
+use App\Models\Justificacion;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -137,12 +138,127 @@ class AsistenciaController extends Controller
                 ->get();
         }
 
+        // Justificaciones del mes para el usuario filtrado
+        $justificaciones = Justificacion::where('user_id', $usuarioId)
+            ->whereYear('fecha', $anio)->whereMonth('fecha', $mes)
+            ->get()->keyBy(fn($j) => $j->fecha->format('Y-m-d') . '_' . $j->tipo);
+
+        // Pendientes para el gestor
+        $justPendientes = $esGestor
+            ? Justificacion::with('empleado')->where('estado', 'pendiente')->orderBy('fecha')->get()
+            : collect();
+
         return view('asistencias.index', compact(
             'registros', 'esGestor', 'anio', 'mes', 'primerDia', 'diasDelMes',
             'usuarioFiltro', 'usuarios',
             'diasPresentes', 'diasCompletos', 'diasLaborales',
-            'horasTotal', 'minsExtra', 'hoyEquipo'
+            'horasTotal', 'minsExtra', 'hoyEquipo',
+            'justificaciones', 'justPendientes'
         ));
+    }
+
+    // ── Justificaciones ───────────────────────────────────────────────
+
+    public function crearJustificacion(Request $request)
+    {
+        abort_unless(auth()->user()->hasPermissionTo('asistencias.registrar'), 403);
+
+        $fecha = $request->input('fecha', today()->format('Y-m-d'));
+        $tipo  = $request->input('tipo', 'entrada');
+
+        // No justificar si ya hay asistencia registrada para ese día/tipo
+        $yaExiste = Asistencia::where('user_id', auth()->id())
+            ->whereDate('fecha', $fecha)->where('tipo', $tipo)->exists();
+
+        $yaEnviada = Justificacion::where('user_id', auth()->id())
+            ->whereDate('fecha', $fecha)->where('tipo', $tipo)->exists();
+
+        return view('asistencias.justificar', compact('fecha', 'tipo', 'yaExiste', 'yaEnviada'));
+    }
+
+    public function guardarJustificacion(Request $request)
+    {
+        abort_unless(auth()->user()->hasPermissionTo('asistencias.registrar'), 403);
+
+        $data = $request->validate([
+            'fecha'            => ['required', 'date', 'before_or_equal:today'],
+            'tipo'             => ['required', 'in:entrada,salida'],
+            'hora_justificada' => ['required', 'date_format:H:i'],
+            'motivo'           => ['required', 'string', 'max:600'],
+        ]);
+
+        $yaExiste = Asistencia::where('user_id', auth()->id())
+            ->whereDate('fecha', $data['fecha'])->where('tipo', $data['tipo'])->exists();
+
+        if ($yaExiste) {
+            return back()->with('error', 'Ya tienes una asistencia registrada para ese día y tipo.');
+        }
+
+        Justificacion::updateOrCreate(
+            ['user_id' => auth()->id(), 'fecha' => $data['fecha'], 'tipo' => $data['tipo']],
+            [
+                'hora_justificada' => $data['hora_justificada'] . ':00',
+                'motivo'           => $data['motivo'],
+                'estado'           => 'pendiente',
+                'respuesta_admin'  => null,
+                'atendido_por'     => null,
+                'atendido_at'      => null,
+                'asistencia_id'    => null,
+            ]
+        );
+
+        return redirect()->route('asistencias.index')
+            ->with('success', 'Justificación enviada. El administrador la revisará pronto.');
+    }
+
+    public function aprobarJustificacion(Request $request, Justificacion $justificacion)
+    {
+        abort_unless(auth()->user()->hasPermissionTo('asistencias.gestionar'), 403);
+
+        $request->validate(['respuesta_admin' => ['nullable', 'string', 'max:400']]);
+
+        // Crear el registro de asistencia
+        $asistencia = Asistencia::firstOrCreate(
+            [
+                'user_id' => $justificacion->user_id,
+                'fecha'   => $justificacion->fecha,
+                'tipo'    => $justificacion->tipo,
+            ],
+            [
+                'hora'              => $justificacion->hora_justificada,
+                'latitud'           => 0,
+                'longitud'          => 0,
+                'distancia_metros'  => 0,
+                'radio_configurado' => 0,
+                'observaciones'     => 'Aprobado por justificación: ' . $justificacion->motivo,
+            ]
+        );
+
+        $justificacion->update([
+            'estado'          => 'aprobado',
+            'respuesta_admin' => $request->respuesta_admin,
+            'atendido_por'    => auth()->id(),
+            'atendido_at'     => now(),
+            'asistencia_id'   => $asistencia->id,
+        ]);
+
+        return back()->with('success', 'Justificación aprobada y asistencia registrada.');
+    }
+
+    public function rechazarJustificacion(Request $request, Justificacion $justificacion)
+    {
+        abort_unless(auth()->user()->hasPermissionTo('asistencias.gestionar'), 403);
+
+        $request->validate(['respuesta_admin' => ['required', 'string', 'max:400']]);
+
+        $justificacion->update([
+            'estado'          => 'rechazado',
+            'respuesta_admin' => $request->respuesta_admin,
+            'atendido_por'    => auth()->id(),
+            'atendido_at'     => now(),
+        ]);
+
+        return back()->with('success', 'Justificación rechazada.');
     }
 
     // ── Config geo (admin) ────────────────────────────────────────────

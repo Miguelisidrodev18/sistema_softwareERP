@@ -129,6 +129,66 @@
     </div>
     @endif
 
+    {{-- Justificaciones pendientes (solo gestor) --}}
+    @if($esGestor && $justPendientes->isNotEmpty())
+    <div class="card overflow-hidden mb-6" x-data="{}">
+        <div class="px-5 py-3 border-b border-slate-800/60 flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <p class="text-sm font-semibold text-amber-400">Justificaciones pendientes ({{ $justPendientes->count() }})</p>
+        </div>
+        <div class="divide-y divide-slate-800/40">
+            @foreach($justPendientes as $just)
+            <div class="px-5 py-4" x-data="{ accion: null }">
+                <div class="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-white font-semibold text-sm">{{ $just->empleado->name }}</span>
+                            <span class="text-xs text-slate-500">·</span>
+                            <span class="text-xs font-mono text-slate-400">
+                                {{ $just->fecha->isoFormat('ddd D MMM') }} — {{ ucfirst($just->tipo) }} a las {{ substr($just->hora_justificada,0,5) }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">{{ $just->motivo }}</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button @click="accion = accion === 'aprobar' ? null : 'aprobar'"
+                                :class="accion==='aprobar' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-700 text-slate-400 hover:border-slate-500'"
+                                class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all">
+                            Aprobar
+                        </button>
+                        <button @click="accion = accion === 'rechazar' ? null : 'rechazar'"
+                                :class="accion==='rechazar' ? 'bg-red-500/20 border-red-500 text-red-400' : 'border-slate-700 text-slate-400 hover:border-slate-500'"
+                                class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all">
+                            Rechazar
+                        </button>
+                    </div>
+                </div>
+
+                <form x-show="accion === 'aprobar'" x-transition
+                      method="POST" action="{{ route('asistencias.justificacion.aprobar', $just) }}" class="flex gap-2">
+                    @csrf @method('PATCH')
+                    <input type="text" name="respuesta_admin" placeholder="Nota opcional..."
+                           class="input-field flex-1 text-sm py-1.5">
+                    <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-white transition-colors">
+                        Confirmar aprobación
+                    </button>
+                </form>
+
+                <form x-show="accion === 'rechazar'" x-transition
+                      method="POST" action="{{ route('asistencias.justificacion.rechazar', $just) }}" class="flex gap-2">
+                    @csrf @method('PATCH')
+                    <input type="text" name="respuesta_admin" placeholder="Motivo del rechazo (requerido)..."
+                           class="input-field flex-1 text-sm py-1.5" required>
+                    <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-red-500 hover:bg-red-400 text-white transition-colors">
+                        Confirmar rechazo
+                    </button>
+                </form>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- Tabla mensual --}}
     <div class="card overflow-hidden">
         <div class="px-5 py-3 border-b border-slate-800/60">
@@ -161,6 +221,8 @@
                         $minutos = ($ent && $sal)
                             ? \Carbon\Carbon::parse($ent->hora)->diffInMinutes(\Carbon\Carbon::parse($sal->hora))
                             : null;
+                        $justEnt = $justificaciones->get($key . '_entrada');
+                        $justSal = $justificaciones->get($key . '_salida');
                     @endphp
                     <tr class="{{ $esDomingo ? 'opacity-40' : ($esHoy ? 'bg-sky-500/5' : 'hover:bg-slate-800/20') }} transition-colors">
                         <td class="td-cell font-mono text-slate-400">
@@ -168,24 +230,31 @@
                             @if($esHoy)<span class="ml-1 text-xs text-sky-400">hoy</span>@endif
                         </td>
                         <td class="td-cell font-mono {{ $ent ? 'text-emerald-400' : 'text-slate-600' }}">
-                            {{ $ent ? substr($ent->hora,0,5) : ($esDomingo||$esFuturo ? '—' : '—') }}
+                            {{ $ent ? substr($ent->hora,0,5) : '—' }}
+                            @if(!$ent && $justEnt)
+                                @php $c = $justEnt->estadoColor() @endphp
+                                <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-{{ $c }}-500/20 text-{{ $c }}-400 font-sans">
+                                    just.{{ substr($justEnt->estado,0,3) }}
+                                </span>
+                            @endif
                         </td>
                         <td class="td-cell font-mono {{ $sal ? 'text-sky-400' : 'text-slate-600' }}">
                             {{ $sal ? substr($sal->hora,0,5) : '—' }}
+                            @if(!$sal && $justSal)
+                                @php $c = $justSal->estadoColor() @endphp
+                                <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-{{ $c }}-500/20 text-{{ $c }}-400 font-sans">
+                                    just.{{ substr($justSal->estado,0,3) }}
+                                </span>
+                            @endif
                         </td>
                         <td class="td-cell font-mono text-slate-300">
                             @if($minutos !== null)
                                 {{ intdiv($minutos,60) }}h {{ $minutos%60 }}m
-                            @else
-                                —
+                            @else —
                             @endif
                         </td>
                         <td class="td-cell text-slate-400 text-xs">
-                            @if($ent)
-                                {{ round($ent->distancia_metros) }}m
-                            @else
-                                —
-                            @endif
+                            {{ $ent ? round($ent->distancia_metros) . 'm' : '—' }}
                         </td>
                         <td class="td-cell">
                             @if($esDomingo)
@@ -195,9 +264,21 @@
                             @elseif($ent && $sal)
                                 <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">✓ Completo</span>
                             @elseif($ent)
-                                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">Solo entrada</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">Solo entrada</span>
+                                    @if(!$justSal && !$esGestor)
+                                    <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'salida']) }}"
+                                       class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">justificar</a>
+                                    @endif
+                                </div>
                             @else
-                                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">Falta</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">Falta</span>
+                                    @if(!$justEnt && !$esGestor && !$esHoy)
+                                    <a href="{{ route('asistencias.justificar', ['fecha'=>$key,'tipo'=>'entrada']) }}"
+                                       class="text-[10px] text-slate-500 hover:text-amber-400 transition-colors underline">justificar</a>
+                                    @endif
+                                </div>
                             @endif
                         </td>
                     </tr>

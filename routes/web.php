@@ -223,6 +223,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/asistencias',         [AsistenciaController::class, 'index'])->middleware('permission:asistencias.ver|asistencias.gestionar')->name('asistencias.index');
     Route::get('/asistencias/marcar',  [AsistenciaController::class, 'marcar'])->middleware('permission:asistencias.registrar')->name('asistencias.marcar');
     Route::post('/asistencias/marcar', [AsistenciaController::class, 'registrar'])->middleware('permission:asistencias.registrar')->name('asistencias.registrar');
+    Route::get('/asistencias/justificar',                              [AsistenciaController::class, 'crearJustificacion'])->middleware('permission:asistencias.registrar')->name('asistencias.justificar');
+    Route::post('/asistencias/justificar',                             [AsistenciaController::class, 'guardarJustificacion'])->middleware('permission:asistencias.registrar')->name('asistencias.justificar.store');
+    Route::patch('/asistencias/justificaciones/{justificacion}/aprobar', [AsistenciaController::class, 'aprobarJustificacion'])->middleware('permission:asistencias.gestionar')->name('asistencias.justificacion.aprobar');
+    Route::patch('/asistencias/justificaciones/{justificacion}/rechazar', [AsistenciaController::class, 'rechazarJustificacion'])->middleware('permission:asistencias.gestionar')->name('asistencias.justificacion.rechazar');
     Route::get('/asistencias/config',  [AsistenciaController::class, 'configGeo'])->middleware('permission:asistencias.gestionar')->name('asistencias.config');
     Route::post('/asistencias/config', [AsistenciaController::class, 'guardarConfigGeo'])->middleware('permission:asistencias.gestionar')->name('asistencias.config.save');
 
