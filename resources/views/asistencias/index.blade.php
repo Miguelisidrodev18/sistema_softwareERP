@@ -178,7 +178,7 @@
                       method="POST" action="{{ route('asistencias.justificacion.aprobar', $just) }}" class="flex gap-2">
                     @csrf @method('PATCH')
                     <input type="text" name="respuesta_admin" placeholder="Nota opcional..."
-                           class="input-field flex-1 text-sm py-1.5">
+                           class="input-dark flex-1 text-sm py-1.5">
                     <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-white transition-colors">
                         Confirmar aprobación
                     </button>
@@ -188,7 +188,7 @@
                       method="POST" action="{{ route('asistencias.justificacion.rechazar', $just) }}" class="flex gap-2">
                     @csrf @method('PATCH')
                     <input type="text" name="respuesta_admin" placeholder="Motivo del rechazo (requerido)..."
-                           class="input-field flex-1 text-sm py-1.5" required>
+                           class="input-dark flex-1 text-sm py-1.5" required>
                     <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-red-500 hover:bg-red-400 text-white transition-colors">
                         Confirmar rechazo
                     </button>

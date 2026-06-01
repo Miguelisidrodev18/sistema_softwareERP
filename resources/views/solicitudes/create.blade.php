@@ -79,7 +79,7 @@
                     </label>
                     <textarea id="descripcion" name="descripcion" rows="4"
                               placeholder="Explica para qué necesitas esto, cuándo lo usarás, etc."
-                              class="input-field w-full resize-none"
+                              class="input-dark w-full resize-none"
                               required>{{ old('descripcion') }}</textarea>
                     @error('descripcion')<p class="mt-1 text-xs text-red-400">{{ $message }}</p>@enderror
                 </div>

@@ -79,7 +79,7 @@
                     <label class="block text-sm font-medium text-slate-300 mb-1.5">Motivo / Explicación</label>
                     <textarea name="motivo" rows="4"
                               placeholder="Explica por qué no pudiste registrar tu asistencia en ese momento..."
-                              class="input-field w-full resize-none"
+                              class="w-full resize-none rounded-xl border border-slate-700 bg-slate-800 text-slate-100 text-sm px-3 py-2.5 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                               required>{{ old('motivo') }}</textarea>
                     <p class="text-xs text-slate-600 mt-1">Sé específico: el administrador tomará una decisión en base a tu justificación.</p>
                     @error('motivo')<p class="mt-1 text-xs text-red-400">{{ $message }}</p>@enderror

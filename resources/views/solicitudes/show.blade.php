@@ -107,7 +107,7 @@
                       method="POST" action="{{ route('solicitudes.aprobar', $solicitude) }}" class="space-y-3">
                     @csrf @method('PATCH')
                     <textarea name="respuesta_admin" rows="2" placeholder="Nota opcional para el solicitante..."
-                              class="input-field w-full resize-none text-sm"></textarea>
+                              class="input-dark w-full resize-none text-sm"></textarea>
                     <button type="submit"
                             class="w-full py-2.5 rounded-xl text-sm font-semibold bg-sky-500 hover:bg-sky-400 text-white transition-colors">
                         Confirmar aprobación
@@ -119,7 +119,7 @@
                       method="POST" action="{{ route('solicitudes.rechazar', $solicitude) }}" class="space-y-3">
                     @csrf @method('PATCH')
                     <textarea name="respuesta_admin" rows="2" placeholder="Explica el motivo del rechazo (requerido)..."
-                              class="input-field w-full resize-none text-sm" required></textarea>
+                              class="input-dark w-full resize-none text-sm" required></textarea>
                     <button type="submit"
                             class="w-full py-2.5 rounded-xl text-sm font-semibold bg-red-500 hover:bg-red-400 text-white transition-colors">
                         Confirmar rechazo
