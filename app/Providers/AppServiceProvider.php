@@ -8,10 +8,12 @@ use App\Models\Project;
 use App\Models\Quote;
 use App\Models\QuotePayment;
 use App\Models\Requirement;
+use App\Models\Solicitud;
 use App\Models\Sprint;
 use App\Policies\ClientePolicy;
 use App\Policies\ProyectoPolicy;
 use App\Policies\RequerimientoPolicy;
+use App\Policies\SolicitudPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Client::class,       ClientePolicy::class);
         Gate::policy(Project::class,      ProyectoPolicy::class);
         Gate::policy(Requirement::class,  RequerimientoPolicy::class);
+        Gate::policy(Solicitud::class,    SolicitudPolicy::class);
 
         // Route model bindings en español
         Route::model('cliente',       Client::class);

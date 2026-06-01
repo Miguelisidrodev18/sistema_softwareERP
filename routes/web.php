@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Reportes\ReporteController;
+use App\Http\Controllers\Solicitudes\SolicitudController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Planilla\PlanillaController;
@@ -216,6 +217,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/admin/usuarios/{usuario}', [UsuarioController::class, 'destroy'])->middleware('permission:usuarios.eliminar')->name('usuarios.destroy');
     Route::patch('/admin/usuarios/{usuario}/toggle', [UsuarioController::class, 'toggleActivo'])->middleware('permission:usuarios.editar')->name('usuarios.toggle');
     Route::patch('/admin/usuarios/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])->middleware('permission:usuarios.editar')->name('usuarios.reset-password');
+
+    // ── Solicitudes internas ────────────────────────────────────────────
+    Route::get('/solicitudes',                       [SolicitudController::class, 'index'])->middleware('permission:solicitudes.ver|solicitudes.gestionar')->name('solicitudes.index');
+    Route::get('/solicitudes/create',                [SolicitudController::class, 'create'])->middleware('permission:solicitudes.crear')->name('solicitudes.create');
+    Route::post('/solicitudes',                      [SolicitudController::class, 'store'])->middleware('permission:solicitudes.crear')->name('solicitudes.store');
+    Route::get('/solicitudes/{solicitude}',          [SolicitudController::class, 'show'])->middleware('permission:solicitudes.ver|solicitudes.gestionar')->name('solicitudes.show');
+    Route::patch('/solicitudes/{solicitude}/aprobar',[SolicitudController::class, 'aprobar'])->middleware('permission:solicitudes.gestionar')->name('solicitudes.aprobar');
+    Route::patch('/solicitudes/{solicitude}/rechazar',[SolicitudController::class, 'rechazar'])->middleware('permission:solicitudes.gestionar')->name('solicitudes.rechazar');
+    Route::patch('/solicitudes/{solicitude}/entregar',[SolicitudController::class, 'entregar'])->middleware('permission:solicitudes.gestionar')->name('solicitudes.entregar');
+    Route::delete('/solicitudes/{solicitude}',       [SolicitudController::class, 'destroy'])->middleware('permission:solicitudes.ver|solicitudes.gestionar')->name('solicitudes.destroy');
 
     // ── Roles ────────────────────────────────────────────────────────────
     Route::get('/admin/roles',               [RolController::class, 'index'])->middleware('permission:usuarios.ver')->name('roles.index');

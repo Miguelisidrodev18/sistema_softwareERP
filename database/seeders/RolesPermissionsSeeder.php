@@ -80,6 +80,11 @@ class RolesPermissionsSeeder extends Seeder
             'sprints.ver',       // ver boards, sprint list, daily reports del equipo
             'sprints.gestionar', // crear, editar, activar, cerrar sprints
             'sprints.daily',     // registrar daily standup propio
+
+            // Solicitudes internas
+            'solicitudes.ver',       // ver propias solicitudes
+            'solicitudes.crear',     // crear solicitud
+            'solicitudes.gestionar', // ver todas, aprobar/rechazar/entregar
         ];
 
         foreach ($permissions as $permission) {
@@ -113,6 +118,7 @@ class RolesPermissionsSeeder extends Seeder
             'configuracion.ver',
             'usuarios.ver',
             'sprints.ver', 'sprints.gestionar', 'sprints.daily',
+            'solicitudes.gestionar',
         ]);
 
         $ventas->syncPermissions([
@@ -122,18 +128,21 @@ class RolesPermissionsSeeder extends Seeder
             'cotizaciones.aprobar', 'cotizaciones.pdf',
             'entregas.ver',
             'reportes.ver',
+            'solicitudes.ver', 'solicitudes.crear',
         ]);
 
         $desarrollador->syncPermissions([
             'proyectos.ver_asignados',
             'requerimientos.ver', 'requerimientos.crear', 'requerimientos.editar',
             'sprints.ver', 'sprints.daily',
+            'solicitudes.ver', 'solicitudes.crear',
         ]);
 
         $practicante->syncPermissions([
             'proyectos.ver_asignados',
             'requerimientos.ver', 'requerimientos.editar',
             'sprints.ver', 'sprints.daily',
+            'solicitudes.ver', 'solicitudes.crear',
         ]);
 
         $this->command->info('Roles y permisos creados correctamente.');
