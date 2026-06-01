@@ -16,11 +16,15 @@ class EmpresaConfig extends Model
         'igv_porcentaje', 'moneda', 'serie_boleta', 'serie_factura',
         'sunat_modo', 'nubefact_url', 'nubefact_token',
         'certificado_pfx_path', 'certificado_pfx_clave',
+        'asistencia_latitud', 'asistencia_longitud', 'asistencia_radio_metros',
     ];
 
     protected $casts = [
-        'igv_porcentaje'       => 'decimal:2',
-        'certificado_pfx_clave'=> 'encrypted',
+        'igv_porcentaje'          => 'decimal:2',
+        'certificado_pfx_clave'   => 'encrypted',
+        'asistencia_latitud'      => 'decimal:7',
+        'asistencia_longitud'     => 'decimal:7',
+        'asistencia_radio_metros' => 'integer',
     ];
 
     // ── Singleton ────────────────────────────────────────────────────
@@ -58,5 +62,17 @@ class EmpresaConfig extends Model
     public function igvDecimal(): float
     {
         return (float) $this->igv_porcentaje / 100;
+    }
+
+    // ── Asistencia ───────────────────────────────────────────────────
+
+    public function tieneGeoConfigurado(): bool
+    {
+        return !is_null($this->asistencia_latitud) && !is_null($this->asistencia_longitud);
+    }
+
+    public function radioMetros(): int
+    {
+        return $this->asistencia_radio_metros ?? 15;
     }
 }

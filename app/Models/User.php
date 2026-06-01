@@ -74,4 +74,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\PayrollPayment::class);
     }
+
+    public function asistencias(): HasMany
+    {
+        return $this->hasMany(Asistencia::class);
+    }
+
+    public function asistenciasHoy(): HasMany
+    {
+        return $this->hasMany(Asistencia::class)->whereDate('fecha', today())->orderBy('hora');
+    }
 }
