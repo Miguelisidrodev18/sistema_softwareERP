@@ -17,6 +17,8 @@ class PermissionGroups
             'Caja'           => ['caja.ver', 'caja.crear', 'caja.editar', 'caja.eliminar'],
             'Entregas'       => ['entregas.ver', 'entregas.crear', 'entregas.editar', 'entregas.eliminar'],
             'Planilla'       => ['planilla.ver', 'planilla.crear', 'planilla.pagar', 'planilla.eliminar'],
+            'Asistencias'    => ['asistencias.ver', 'asistencias.registrar', 'asistencias.gestionar'],
+            'Solicitudes'    => ['solicitudes.ver', 'solicitudes.crear', 'solicitudes.gestionar'],
             'Reportes'       => ['reportes.ver', 'reportes.exportar'],
             'Configuración'  => ['configuracion.ver', 'configuracion.editar'],
             'Usuarios'       => ['usuarios.ver', 'usuarios.crear', 'usuarios.editar', 'usuarios.eliminar'],
