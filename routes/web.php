@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ConfigController;
+use App\Http\Controllers\Reportes\ReporteController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Planilla\PlanillaController;
@@ -188,7 +189,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/entregas/{entrega}',        [EntregaController::class, 'update'])->middleware('permission:entregas.editar')->name('entregas.update');
     Route::delete('/entregas/{entrega}',     [EntregaController::class, 'destroy'])->middleware('permission:entregas.eliminar')->name('entregas.destroy');
     Route::get('/entregas/{entrega}/acta',   [EntregaController::class, 'acta'])->middleware('permission:entregas.ver')->name('entregas.acta');
-    Route::get('/reportes',         fn() => $proximamente('Reportes', 6))->name('reportes.index');
+    Route::get('/reportes', [ReporteController::class, 'index'])
+        ->middleware('permission:reportes.ver')
+        ->name('reportes.index');
 
     // ── Planilla ─────────────────────────────────────────────────────────
     Route::get('/planilla',                    [PlanillaController::class, 'index'])->middleware('permission:planilla.ver')->name('planilla.index');
