@@ -41,8 +41,7 @@ class AsistenciasDesarrolladorSeeder extends Seeder
         $inicio = Carbon::parse(self::FECHA_INICIO);
         $period = CarbonPeriod::create($inicio, $hoy);
 
-        $creados  = 0;
-        $omitidos = 0;
+        $creados = 0;
 
         foreach ($usuarios as $usuario) {
             $excluirHoy = in_array($usuario->name, self::EXCLUIR_HOY);
@@ -72,28 +71,22 @@ class AsistenciasDesarrolladorSeeder extends Seeder
                 $horaSalida  = sprintf('%02d:%02d:%02d', self::SALIDA_HORA,  $minSalida,  $segSalida);
 
                 foreach (['entrada' => $horaEntrada, 'salida' => $horaSalida] as $tipo => $hora) {
-                    $existe = Asistencia::where('user_id', $usuario->id)
-                        ->whereDate('fecha', $fechaStr)
-                        ->where('tipo', $tipo)
-                        ->exists();
-
-                    if ($existe) {
-                        $omitidos++;
-                        continue;
-                    }
-
-                    Asistencia::create([
-                        'user_id'           => $usuario->id,
-                        'tipo'              => $tipo,
-                        'fecha'             => $fechaStr,
-                        'hora'              => $hora,
-                        'latitud'           => 0,
-                        'longitud'          => 0,
-                        'distancia_metros'  => 0,
-                        'radio_configurado' => 0,
-                        'justificada'       => false,
-                        'observaciones'     => 'Registro manual administrativo',
-                    ]);
+                    Asistencia::updateOrCreate(
+                        [
+                            'user_id' => $usuario->id,
+                            'fecha'   => $fechaStr,
+                            'tipo'    => $tipo,
+                        ],
+                        [
+                            'hora'              => $hora,
+                            'latitud'           => 0,
+                            'longitud'          => 0,
+                            'distancia_metros'  => 0,
+                            'radio_configurado' => 0,
+                            'justificada'       => false,
+                            'observaciones'     => 'Registro manual administrativo',
+                        ]
+                    );
 
                     $creados++;
                 }
@@ -102,6 +95,6 @@ class AsistenciasDesarrolladorSeeder extends Seeder
             }
         }
 
-        $this->command->info("Listo: {$creados} registros creados, {$omitidos} ya existían (omitidos).");
+        $this->command->info("Listo: {$creados} registros insertados/actualizados.");
     }
 }
