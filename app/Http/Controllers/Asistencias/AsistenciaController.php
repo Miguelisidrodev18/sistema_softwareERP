@@ -90,21 +90,43 @@ class AsistenciaController extends Controller
         $anio = (int) $request->input('anio', now()->year);
         $mes  = (int) $request->input('mes',  now()->month);
 
-        $usuarioId     = $esGestor ? (int) $request->input('usuario_id', $authUser->id) : $authUser->id;
-        $usuarioFiltro = User::findOrFail($usuarioId);
+        $usuarioIdRaw  = $esGestor ? $request->input('usuario_id', '0') : (string) $authUser->id;
+        $vistaGeneral  = $esGestor && $usuarioIdRaw === '0';
+        $usuarioId     = $vistaGeneral ? $authUser->id : (int) $usuarioIdRaw;
+        $usuarioFiltro = $vistaGeneral ? $authUser : User::findOrFail($usuarioId);
 
         $usuarios = $esGestor
             ? User::orderBy('name')->get(['id', 'name'])
             : collect();
 
-        // Registros del mes agrupados por fecha
+        // Días laborables del mes (lunes a sábado)
+        $primerDia     = Carbon::create($anio, $mes, 1);
+        $diasDelMes    = $primerDia->daysInMonth;
+        $diasLaborales = collect(range(1, $diasDelMes))->filter(
+            fn($d) => Carbon::create($anio, $mes, $d)->dayOfWeek !== Carbon::SUNDAY
+        )->count();
+
+        // Vista general: todos los empleados en una sola tabla (solo gestor)
+        $registrosTodos = collect();
+        if ($vistaGeneral) {
+            $registrosTodos = Asistencia::with('empleado')
+                ->delMes($anio, $mes)
+                ->orderBy('hora')
+                ->get()
+                ->groupBy([
+                    fn($r) => $r->fecha->format('Y-m-d'),
+                    fn($r) => $r->user_id,
+                ]);
+        }
+
+        // Registros del mes agrupados por fecha (vista individual)
         $registros = Asistencia::where('user_id', $usuarioId)
             ->delMes($anio, $mes)
             ->orderBy('hora')
             ->get()
             ->groupBy(fn($r) => $r->fecha->format('Y-m-d'));
 
-        // Estadísticas
+        // Estadísticas (solo para vista individual)
         $diasPresentes  = $registros->count();
         $diasCompletos  = $registros->filter(
             fn($g) => $g->firstWhere('tipo', 'entrada') && $g->firstWhere('tipo', 'salida')
@@ -122,13 +144,6 @@ class AsistenciaController extends Controller
         $horasTotal = intdiv($minutosTotal, 60);
         $minsExtra  = $minutosTotal % 60;
 
-        // Días laborables del mes (lunes a sábado)
-        $primerDia    = Carbon::create($anio, $mes, 1);
-        $diasDelMes   = $primerDia->daysInMonth;
-        $diasLaborales = collect(range(1, $diasDelMes))->filter(
-            fn($d) => Carbon::create($anio, $mes, $d)->dayOfWeek !== Carbon::SUNDAY
-        )->count();
-
         // Hoy: resumen del equipo (solo gestor)
         $hoyEquipo = null;
         if ($esGestor) {
@@ -138,7 +153,7 @@ class AsistenciaController extends Controller
                 ->get();
         }
 
-        // Justificaciones del mes para el usuario filtrado
+        // Justificaciones del mes para el usuario filtrado (vista individual)
         $justificaciones = Justificacion::where('user_id', $usuarioId)
             ->whereYear('fecha', $anio)->whereMonth('fecha', $mes)
             ->get()->keyBy(fn($j) => $j->fecha->format('Y-m-d') . '_' . $j->tipo);
@@ -149,7 +164,8 @@ class AsistenciaController extends Controller
             : collect();
 
         return view('asistencias.index', compact(
-            'registros', 'esGestor', 'anio', 'mes', 'primerDia', 'diasDelMes',
+            'registros', 'registrosTodos', 'vistaGeneral',
+            'esGestor', 'anio', 'mes', 'primerDia', 'diasDelMes',
             'usuarioFiltro', 'usuarios',
             'diasPresentes', 'diasCompletos', 'diasLaborales',
             'horasTotal', 'minsExtra', 'hoyEquipo',

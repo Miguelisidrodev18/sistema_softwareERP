@@ -41,8 +41,9 @@
             <label class="block text-xs text-slate-500 mb-1">Empleado</label>
             <select name="usuario_id" onchange="this.form.submit()"
                     class="bg-slate-800 border border-slate-700 rounded-xl text-sm text-slate-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500">
+                <option value="0" @selected($vistaGeneral)>— Todos los empleados —</option>
                 @foreach($usuarios as $u)
-                    <option value="{{ $u->id }}" @selected($u->id == $usuarioFiltro->id)>{{ $u->name }}</option>
+                    <option value="{{ $u->id }}" @selected(!$vistaGeneral && $u->id == $usuarioFiltro->id)>{{ $u->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -67,12 +68,11 @@
                 @endforeach
             </select>
         </div>
-        @if($esGestor)
-            <input type="hidden" name="usuario_id" value="{{ $usuarioFiltro->id }}">
-        @endif
+        {{-- no ocultar usuario_id; el select ya lo envía --}}
     </form>
 
-    {{-- KPIs --}}
+    {{-- KPIs (solo vista individual) --}}
+    @if(!$vistaGeneral)
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="card p-4">
             <p class="text-xs text-slate-500 mb-1">Días presentes</p>
@@ -95,6 +95,7 @@
             <p class="text-xs text-slate-600">días sin asistencia</p>
         </div>
     </div>
+    @endif
 
     {{-- Hoy: resumen equipo (solo admin) --}}
     @if($esGestor && $hoyEquipo)
@@ -199,7 +200,74 @@
     </div>
     @endif
 
-    {{-- Tabla mensual --}}
+    {{-- Tabla resumen todos los empleados (solo vista general) --}}
+    @if($vistaGeneral)
+    <div class="card overflow-x-auto mb-6">
+        <div class="px-5 py-3 border-b border-slate-800/60">
+            <p class="text-sm font-semibold text-slate-300">
+                Resumen mensual — {{ \Carbon\Carbon::create($anio, $mes, 1)->isoFormat('MMMM YYYY') }}
+                <span class="ml-2 text-slate-500 font-normal text-xs">E = entrada · S = salida</span>
+            </p>
+        </div>
+        <table class="w-full text-xs">
+            <thead>
+                <tr class="border-b border-slate-800/40">
+                    <th class="th-cell text-left w-20">Día</th>
+                    @foreach($usuarios as $u)
+                        <th class="th-cell text-center">{{ explode(' ', $u->name)[0] }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/30">
+                @for($d = 1; $d <= $diasDelMes; $d++)
+                    @php
+                        $fecha = \Carbon\Carbon::create($anio, $mes, $d);
+                        $key   = $fecha->format('Y-m-d');
+                        $esDomingo = $fecha->dayOfWeek === \Carbon\Carbon::SUNDAY;
+                        $esHoy     = $fecha->isToday();
+                        $esFuturo  = $fecha->isFuture();
+                        $diaGrupo  = $registrosTodos->get($key, collect());
+                    @endphp
+                    <tr class="{{ $esDomingo ? 'opacity-40' : ($esHoy ? 'bg-sky-500/5' : 'hover:bg-slate-800/20') }}">
+                        <td class="td-cell font-mono text-slate-400">
+                            {{ $fecha->isoFormat('ddd D') }}
+                            @if($esHoy)<span class="text-sky-400 ml-1">·</span>@endif
+                        </td>
+                        @foreach($usuarios as $u)
+                            @php
+                                $grupoEmp = $diaGrupo->get($u->id, collect());
+                                $ent = $grupoEmp->firstWhere('tipo','entrada');
+                                $sal = $grupoEmp->firstWhere('tipo','salida');
+                            @endphp
+                            <td class="td-cell text-center">
+                                @if($esDomingo)
+                                    <span class="text-slate-700">—</span>
+                                @elseif($esFuturo)
+                                    <span class="text-slate-800">·</span>
+                                @elseif($ent && $sal)
+                                    <span class="inline-flex flex-col items-center leading-tight">
+                                        <span class="text-emerald-400 font-mono">{{ substr($ent->hora,0,5) }}</span>
+                                        <span class="text-sky-400 font-mono">{{ substr($sal->hora,0,5) }}</span>
+                                    </span>
+                                @elseif($ent)
+                                    <span class="inline-flex flex-col items-center leading-tight">
+                                        <span class="text-emerald-400 font-mono">{{ substr($ent->hora,0,5) }}</span>
+                                        <span class="text-slate-600">—</span>
+                                    </span>
+                                @else
+                                    <span class="text-red-500/70 font-bold">✗</span>
+                                @endif
+                            </td>
+                        @endforeach
+                    </tr>
+                @endfor
+            </tbody>
+        </table>
+    </div>
+    @endif
+
+    {{-- Tabla mensual individual --}}
+    @if(!$vistaGeneral)
     <div class="card overflow-hidden">
         <div class="px-5 py-3 border-b border-slate-800/60">
             <p class="text-sm font-semibold text-slate-300">
@@ -316,6 +384,7 @@
             </tbody>
         </table>
     </div>
+    @endif
 
     @if($esGestor)
     <div class="mt-4 text-right">
