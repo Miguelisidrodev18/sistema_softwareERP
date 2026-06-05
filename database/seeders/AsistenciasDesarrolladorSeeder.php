@@ -12,11 +12,19 @@ class AsistenciasDesarrolladorSeeder extends Seeder
 {
     // ── Configuración ──────────────────────────────────────────────────
     const FECHA_INICIO = '2026-06-01';
-    const HORA_ENTRADA = '08:45:00';
-    const HORA_SALIDA  = '18:00:00';
     const ROL          = 'desarrollador';
 
-    // Usuarios que NO deben tener asistencia registrada hoy (nombre exacto)
+    // Rango entrada: 08:30 – 08:45
+    const ENTRADA_HORA = 8;
+    const ENTRADA_MIN_DESDE = 30;
+    const ENTRADA_MIN_HASTA = 45;
+
+    // Rango salida: 18:00 – 18:30
+    const SALIDA_HORA = 18;
+    const SALIDA_MIN_DESDE = 0;
+    const SALIDA_MIN_HASTA = 30;
+
+    // Usuarios que NO tienen registro hoy (nombre exacto)
     const EXCLUIR_HOY  = ['Carlo Mayta'];
     // ───────────────────────────────────────────────────────────────────
 
@@ -41,12 +49,10 @@ class AsistenciasDesarrolladorSeeder extends Seeder
             $this->command->info("Procesando: {$usuario->name}" . ($excluirHoy ? ' (sin registro hoy)' : ''));
 
             foreach ($period as $fecha) {
-                // Saltar domingos
                 if ($fecha->dayOfWeek === Carbon::SUNDAY) {
                     continue;
                 }
 
-                // Saltar hoy para usuarios excluidos
                 if ($excluirHoy && $fecha->isToday()) {
                     $this->command->line("  · {$fecha->format('d/m/Y')} omitido (excluido hoy)");
                     continue;
@@ -54,7 +60,18 @@ class AsistenciasDesarrolladorSeeder extends Seeder
 
                 $fechaStr = $fecha->format('Y-m-d');
 
-                foreach (['entrada' => self::HORA_ENTRADA, 'salida' => self::HORA_SALIDA] as $tipo => $hora) {
+                // Generar horas aleatorias únicas por usuario+día
+                // Usar seed reproducible para que no cambie si se re-ejecuta en debug
+                mt_srand(crc32($usuario->id . $fechaStr));
+                $minEntrada = mt_rand(self::ENTRADA_MIN_DESDE, self::ENTRADA_MIN_HASTA);
+                $segEntrada = mt_rand(0, 59);
+                $minSalida  = mt_rand(self::SALIDA_MIN_DESDE, self::SALIDA_MIN_HASTA);
+                $segSalida  = mt_rand(0, 59);
+
+                $horaEntrada = sprintf('%02d:%02d:%02d', self::ENTRADA_HORA, $minEntrada, $segEntrada);
+                $horaSalida  = sprintf('%02d:%02d:%02d', self::SALIDA_HORA,  $minSalida,  $segSalida);
+
+                foreach (['entrada' => $horaEntrada, 'salida' => $horaSalida] as $tipo => $hora) {
                     $existe = Asistencia::where('user_id', $usuario->id)
                         ->whereDate('fecha', $fechaStr)
                         ->where('tipo', $tipo)
@@ -80,6 +97,8 @@ class AsistenciasDesarrolladorSeeder extends Seeder
 
                     $creados++;
                 }
+
+                $this->command->line("  · {$fechaStr} → entrada {$horaEntrada}  salida {$horaSalida}");
             }
         }
 
