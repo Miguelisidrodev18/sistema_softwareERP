@@ -327,6 +327,11 @@
             {{ $header ?? '' }}
         </div>
 
+        {{-- Notificaciones de solicitudes urgentes --}}
+        @can('solicitudes.gestionar')
+        <livewire:notificaciones-solicitudes />
+        @endcan
+
         {{-- Rol del usuario --}}
         @php $roles = auth()->user()->getRoleNames(); @endphp
         @if($roles->isNotEmpty())
