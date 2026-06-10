@@ -30,7 +30,29 @@ class ClienteController extends Controller
 
     public function show(Client $cliente)
     {
-        return view('clientes.show', compact('cliente'));
+        $cliente->load([
+            'projects.phases',
+            'projects.responsible',
+            'quotes.payments',
+            'quotes.invoices',
+            'invoices',
+            'cashMovements',
+            'deliveries',
+        ]);
+
+        // Todas las cuotas de todas las cotizaciones del cliente
+        $todasLasCuotas = $cliente->quotes->flatMap(fn($q) => $q->payments)->sortBy('orden');
+
+        $kpis = [
+            'total_cotizado'    => $cliente->totalCotizado(),
+            'total_facturado'   => $cliente->totalFacturado(),
+            'total_cobrado'     => $cliente->totalCobrado(),
+            'saldo_pendiente'   => $cliente->saldoPendiente(),
+            'proyectos_activos' => $cliente->projects->whereIn('status', ['planificado', 'en_curso'])->count(),
+            'cuotas_vencidas'   => $todasLasCuotas->where('estado', 'vencida')->count(),
+        ];
+
+        return view('clientes.show', compact('cliente', 'kpis', 'todasLasCuotas'));
     }
 
     public function edit(Client $cliente)

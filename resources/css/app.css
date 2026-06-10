@@ -68,6 +68,16 @@
     66%       { transform: translate(-18px, 28px); }
 }
 
+/* ── Select options dark theme (Chrome/Edge Windows) ─────────── */
+select option {
+    background-color: #1e293b;
+    color: #cbd5e1;
+}
+select option:disabled,
+select option[value=""] {
+    color: #64748b;
+}
+
 /* ── Auth / inputs ────────────────────────────────────────────── */
 @layer components {
     .input-dark {

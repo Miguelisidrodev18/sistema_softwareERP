@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Client extends Model
@@ -37,6 +38,53 @@ class Client extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function cashMovements(): HasMany
+    {
+        return $this->hasMany(CashMovement::class);
+    }
+
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(ProjectDelivery::class);
+    }
+
+    // ── KPI Helpers ──────────────────────────────────────────────────
+
+    public function totalCotizado(): float
+    {
+        return (float) $this->quotes->whereNotIn('status', ['rechazado'])->sum('total');
+    }
+
+    public function totalFacturado(): float
+    {
+        return (float) $this->invoices->whereNotIn('estado_sunat', ['anulado', 'borrador'])->sum('total');
+    }
+
+    public function totalCobrado(): float
+    {
+        return (float) $this->cashMovements->where('tipo', 'ingreso')->sum('monto');
+    }
+
+    public function saldoPendiente(): float
+    {
+        return max(0, $this->totalFacturado() - $this->totalCobrado());
     }
 
     // ── Scopes ───────────────────────────────────────────────────────
