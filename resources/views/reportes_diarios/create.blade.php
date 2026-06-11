@@ -352,18 +352,17 @@
         </form>
     </div>
 
+    @php
+        $tareasDefault = [['descripcion' => '', 'tipo' => 'Desarrollo', 'estado' => 'Completado', 'tiempo_horas' => 2]];
+        $impedimentosDefault = [];
+    @endphp
     <script>
         function reporteForm() {
             return {
                 area: '{{ old('area', 'desarrollo') }}',
                 archivoNombre: '',
-                tareas: @json(old('tareas', [[
-                    'descripcion' => '',
-                    'tipo' => 'Desarrollo',
-                    'estado' => 'Completado',
-                    'tiempo_horas' => 2,
-                ]])),
-                impedimentos: @json(old('impedimentos', [])),
+                tareas: @json(old('tareas', $tareasDefault)),
+                impedimentos: @json(old('impedimentos', $impedimentosDefault)),
 
                 agregarTarea() {
                     this.tareas.push({ descripcion: '', tipo: 'Desarrollo', estado: 'Completado', tiempo_horas: 1 });

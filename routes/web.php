@@ -246,6 +246,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reportes-diarios/create',             [ReporteDiarioController::class, 'create'])->middleware('permission:reportes_diarios.crear')->name('reportes_diarios.create');
     Route::post('/reportes-diarios',                   [ReporteDiarioController::class, 'store'])->middleware('permission:reportes_diarios.crear')->name('reportes_diarios.store');
     Route::get('/reportes-diarios/{reportes_diario}',  [ReporteDiarioController::class, 'show'])->middleware('permission:reportes_diarios.ver|reportes_diarios.gestionar')->name('reportes_diarios.show');
+    Route::get('/reportes-diarios/{reportes_diario}/adjunto', [ReporteDiarioController::class, 'descargarAdjunto'])->middleware('permission:reportes_diarios.ver|reportes_diarios.gestionar')->name('reportes_diarios.adjunto');
     Route::delete('/reportes-diarios/{reportes_diario}',[ReporteDiarioController::class, 'destroy'])->middleware('permission:reportes_diarios.ver|reportes_diarios.gestionar')->name('reportes_diarios.destroy');
 
     // ── Roles ────────────────────────────────────────────────────────────

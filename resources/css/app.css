@@ -80,12 +80,14 @@ select option[value=""] {
 
 /* ── Auth / inputs ────────────────────────────────────────────── */
 @layer components {
-    .input-dark {
+    .input-dark,
+    .input-field {
         @apply w-full bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500
                rounded-xl px-4 py-3 text-sm transition-all duration-200
                focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50;
     }
-    .input-dark.error { @apply border-red-500; }
+    .input-dark.error,
+    .input-field.error { @apply border-red-500; }
 
     .btn-primary-blue {
         @apply w-full py-3 px-6 rounded-xl font-semibold text-white text-sm

@@ -233,11 +233,22 @@
             <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Archivo adjunto
             </h2>
-            <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-                <svg class="w-8 h-8 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/>
-                </svg>
-                <p class="text-sm text-slate-400 truncate">{{ basename($reporte->archivo_adjunto) }}</p>
+            <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <div class="flex items-center gap-3 min-w-0">
+                    <svg class="w-8 h-8 text-sky-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/>
+                    </svg>
+                    <span class="text-sm text-slate-300 truncate">{{ basename($reporte->archivo_adjunto) }}</span>
+                </div>
+                <a href="{{ route('reportes_diarios.adjunto', $reporte) }}"
+                   class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                          bg-sky-500/10 text-sky-400 border border-sky-500/20
+                          hover:bg-sky-500/20 hover:text-sky-300 transition-all duration-150 text-xs font-medium">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-4-4 4m0 0-4-4m4 4V4"/>
+                    </svg>
+                    Descargar
+                </a>
             </div>
         </div>
         @endif

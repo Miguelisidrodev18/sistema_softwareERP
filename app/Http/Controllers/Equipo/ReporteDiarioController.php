@@ -75,6 +75,21 @@ class ReporteDiarioController extends Controller
         return view('reportes_diarios.show', ['reporte' => $reportes_diario]);
     }
 
+    public function descargarAdjunto(ReporteDiario $reportes_diario)
+    {
+        $this->authorize('view', $reportes_diario);
+
+        if (! $reportes_diario->archivo_adjunto
+            || ! Storage::disk('private')->exists($reportes_diario->archivo_adjunto)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        return Storage::disk('private')->download(
+            $reportes_diario->archivo_adjunto,
+            basename($reportes_diario->archivo_adjunto)
+        );
+    }
+
     public function destroy(ReporteDiario $reportes_diario)
     {
         $this->authorize('delete', $reportes_diario);
