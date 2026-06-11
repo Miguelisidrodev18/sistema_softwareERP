@@ -90,6 +90,11 @@ class RolesPermissionsSeeder extends Seeder
             'asistencias.ver',       // ver propio reporte mensual
             'asistencias.registrar', // marcar entrada/salida
             'asistencias.gestionar', // ver todo el equipo + configurar geo
+
+            // Reportes Diarios de equipo
+            'reportes_diarios.ver',       // ver propios reportes
+            'reportes_diarios.crear',     // crear reporte del día
+            'reportes_diarios.gestionar', // ver todos los reportes del equipo
         ];
 
         foreach ($permissions as $permission) {
@@ -125,6 +130,7 @@ class RolesPermissionsSeeder extends Seeder
             'sprints.ver', 'sprints.gestionar', 'sprints.daily',
             'solicitudes.gestionar',
             'asistencias.gestionar',
+            'reportes_diarios.ver', 'reportes_diarios.crear', 'reportes_diarios.gestionar',
         ]);
 
         $ventas->syncPermissions([
@@ -136,6 +142,7 @@ class RolesPermissionsSeeder extends Seeder
             'reportes.ver',
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
+            'reportes_diarios.ver', 'reportes_diarios.crear',
         ]);
 
         $desarrollador->syncPermissions([
@@ -144,6 +151,7 @@ class RolesPermissionsSeeder extends Seeder
             'sprints.ver', 'sprints.daily',
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
+            'reportes_diarios.ver', 'reportes_diarios.crear',
         ]);
 
         $practicante->syncPermissions([
@@ -152,6 +160,7 @@ class RolesPermissionsSeeder extends Seeder
             'sprints.ver', 'sprints.daily',
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
+            'reportes_diarios.ver', 'reportes_diarios.crear',
         ]);
 
         $this->command->info('Roles y permisos creados correctamente.');

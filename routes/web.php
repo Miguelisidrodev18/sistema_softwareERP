@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ConfigController;
+use App\Http\Controllers\Equipo\ReporteDiarioController;
 use App\Http\Controllers\Reportes\ReporteController;
 use App\Http\Controllers\Solicitudes\SolicitudController;
 use App\Http\Controllers\Asistencias\AsistenciaController;
@@ -239,6 +240,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/solicitudes/{solicitude}/rechazar',[SolicitudController::class, 'rechazar'])->middleware('permission:solicitudes.gestionar')->name('solicitudes.rechazar');
     Route::patch('/solicitudes/{solicitude}/entregar',[SolicitudController::class, 'entregar'])->middleware('permission:solicitudes.gestionar')->name('solicitudes.entregar');
     Route::delete('/solicitudes/{solicitude}',       [SolicitudController::class, 'destroy'])->middleware('permission:solicitudes.ver|solicitudes.gestionar')->name('solicitudes.destroy');
+
+    // ── Reportes Diarios ─────────────────────────────────────────────────
+    Route::get('/reportes-diarios',                    [ReporteDiarioController::class, 'index'])->middleware('permission:reportes_diarios.ver|reportes_diarios.gestionar')->name('reportes_diarios.index');
+    Route::get('/reportes-diarios/create',             [ReporteDiarioController::class, 'create'])->middleware('permission:reportes_diarios.crear')->name('reportes_diarios.create');
+    Route::post('/reportes-diarios',                   [ReporteDiarioController::class, 'store'])->middleware('permission:reportes_diarios.crear')->name('reportes_diarios.store');
+    Route::get('/reportes-diarios/{reportes_diario}',  [ReporteDiarioController::class, 'show'])->middleware('permission:reportes_diarios.ver|reportes_diarios.gestionar')->name('reportes_diarios.show');
+    Route::delete('/reportes-diarios/{reportes_diario}',[ReporteDiarioController::class, 'destroy'])->middleware('permission:reportes_diarios.ver|reportes_diarios.gestionar')->name('reportes_diarios.destroy');
 
     // ── Roles ────────────────────────────────────────────────────────────
     Route::get('/admin/roles',               [RolController::class, 'index'])->middleware('permission:usuarios.ver')->name('roles.index');
