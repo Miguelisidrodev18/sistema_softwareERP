@@ -53,11 +53,15 @@ class ReporteController extends Controller
             'monto'    => (float) Quote::whereYear('fecha_emision', $year)->whereMonth('fecha_emision', $m)->sum('total'),
         ]);
 
-        $topClientes = Client::select('clients.*')
-            ->selectRaw('SUM(quotes.total) as total_cotizado, COUNT(quotes.id) as total_cotizaciones')
-            ->join('quotes', 'quotes.client_id', '=', 'clients.id')
-            ->whereYear('quotes.fecha_emision', $year)
-            ->groupBy('clients.id')
+        $topClientes = Client::withSum(['quotes as total_cotizado' => function ($q) use ($year) {
+                $q->whereYear('fecha_emision', $year);
+            }], 'total')
+            ->withCount(['quotes as total_cotizaciones' => function ($q) use ($year) {
+                $q->whereYear('fecha_emision', $year);
+            }])
+            ->whereHas('quotes', function ($q) use ($year) {
+                $q->whereYear('fecha_emision', $year);
+            })
             ->orderByDesc('total_cotizado')
             ->limit(5)
             ->get();
