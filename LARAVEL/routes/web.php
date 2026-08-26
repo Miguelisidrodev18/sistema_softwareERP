@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
 use App\Http\Controllers\Entregas\EntregaController;
+use App\Http\Controllers\Eventos\EventoController;
+use App\Http\Controllers\Eventos\EventLeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Proyectos\DailyReportController;
 use App\Http\Controllers\Proyectos\ProyectoController;
@@ -339,6 +341,61 @@ Route::middleware(['auth'])->get('/api/consulta-documento', function (Request $r
     }
 
     return response()->json($response->json());
+});
+
+// ── Eventos (ferias / campañas) y sus leads ──────────────────────────
+// IMPORTANTE: rutas con segmento fijo (create) ANTES de wildcards ({evento})
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/eventos', [EventoController::class, 'index'])
+        ->middleware('permission:eventos.ver')
+        ->name('eventos.index');
+
+    Route::get('/eventos/create', [EventoController::class, 'create'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.create');
+
+    Route::post('/eventos', [EventoController::class, 'store'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.store');
+
+    Route::get('/eventos/{evento}', [EventoController::class, 'show'])
+        ->middleware('permission:eventos.ver')
+        ->name('eventos.show');
+
+    Route::get('/eventos/{evento}/edit', [EventoController::class, 'edit'])
+        ->middleware('permission:eventos.editar')
+        ->name('eventos.edit');
+
+    Route::put('/eventos/{evento}', [EventoController::class, 'update'])
+        ->middleware('permission:eventos.editar')
+        ->name('eventos.update');
+
+    Route::delete('/eventos/{evento}', [EventoController::class, 'destroy'])
+        ->middleware('permission:eventos.eliminar')
+        ->name('eventos.destroy');
+
+    // ── Leads capturados en el evento ────────────────────────────────
+    Route::post('/eventos/{evento}/leads', [EventLeadController::class, 'store'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.leads.store');
+
+    Route::get('/eventos/{evento}/leads/{lead}/edit', [EventLeadController::class, 'edit'])
+        ->middleware('permission:eventos.editar')
+        ->name('eventos.leads.edit');
+
+    Route::put('/eventos/{evento}/leads/{lead}', [EventLeadController::class, 'update'])
+        ->middleware('permission:eventos.editar')
+        ->name('eventos.leads.update');
+
+    Route::delete('/eventos/{evento}/leads/{lead}', [EventLeadController::class, 'destroy'])
+        ->middleware('permission:eventos.eliminar')
+        ->name('eventos.leads.destroy');
+
+    Route::post('/eventos/{evento}/leads/{lead}/convertir', [EventLeadController::class, 'convertir'])
+        ->middleware('permission:eventos.editar')
+        ->name('eventos.leads.convertir');
+
 });
 
 require __DIR__.'/auth.php';
