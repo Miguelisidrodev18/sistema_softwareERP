@@ -101,6 +101,13 @@ class RolesPermissionsSeeder extends Seeder
             'reportes_diarios.ver',       // ver propios reportes
             'reportes_diarios.crear',     // crear reporte del día
             'reportes_diarios.gestionar', // ver todos los reportes del equipo
+
+            // Eventos (ferias / campañas) y captura de leads
+            'eventos.ver',
+            'eventos.crear',
+            'eventos.editar',
+            'eventos.eliminar',
+            'eventos.ver_todos', // ver los leads capturados por TODOS los usuarios; sin esto, cada quien solo ve los suyos
         ];
 
         foreach ($permissions as $permission) {
@@ -138,6 +145,7 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.gestionar',
             'asistencias.gestionar',
             'reportes_diarios.ver', 'reportes_diarios.crear', 'reportes_diarios.gestionar',
+            'eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.eliminar', 'eventos.ver_todos',
         ]);
 
         $ventas->syncPermissions([
@@ -151,6 +159,7 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
             'reportes_diarios.ver', 'reportes_diarios.crear',
+            'eventos.ver', 'eventos.crear', 'eventos.editar',
         ]);
 
         $desarrollador->syncPermissions([
@@ -160,6 +169,7 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
             'reportes_diarios.ver', 'reportes_diarios.crear',
+            'reportes.ver',
         ]);
 
         $practicante->syncPermissions([

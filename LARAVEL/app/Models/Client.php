@@ -65,6 +65,11 @@ class Client extends Model
         return $this->hasMany(ProjectDelivery::class);
     }
 
+    public function eventLeads(): HasMany
+    {
+        return $this->hasMany(EventLead::class);
+    }
+
     // ── KPI Helpers ──────────────────────────────────────────────────
 
     public function totalCotizado(): float
