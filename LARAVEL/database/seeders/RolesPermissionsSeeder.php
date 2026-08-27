@@ -171,6 +171,7 @@ class RolesPermissionsSeeder extends Seeder
             'asistencias.ver', 'asistencias.registrar',
             'reportes_diarios.ver', 'reportes_diarios.crear',
             'reportes.ver',
+            'eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.eliminar', 'eventos.ver_todos', 'eventos.checkin',
         ]);
 
         $practicante->syncPermissions([
@@ -180,6 +181,7 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
             'reportes_diarios.ver', 'reportes_diarios.crear',
+            'eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.eliminar', 'eventos.ver_todos', 'eventos.checkin',
         ]);
 
         $this->command->info('Roles y permisos creados correctamente.');
