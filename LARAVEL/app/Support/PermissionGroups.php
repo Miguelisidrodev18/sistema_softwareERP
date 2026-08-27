@@ -18,6 +18,7 @@ class PermissionGroups
             'Caja'           => ['caja.ver', 'caja.crear', 'caja.editar', 'caja.eliminar'],
             'Entregas'       => ['entregas.ver', 'entregas.crear', 'entregas.editar', 'entregas.eliminar'],
             'Planilla'       => ['planilla.ver', 'planilla.crear', 'planilla.pagar', 'planilla.eliminar'],
+            'Eventos'        => ['eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.eliminar', 'eventos.ver_todos', 'eventos.checkin'],
             'Asistencias'    => ['asistencias.ver', 'asistencias.registrar', 'asistencias.gestionar'],
             'Solicitudes'    => ['solicitudes.ver', 'solicitudes.crear', 'solicitudes.gestionar'],
             'Reportes'       => ['reportes.ver', 'reportes.exportar'],
@@ -44,6 +45,8 @@ class PermissionGroups
             'gestionar'     => 'Gestionar',
             'daily'         => 'Daily report',
             'pagar'         => 'Pagar/revertir',
+            'ver_todos'     => 'Ver todos',
+            'checkin'       => 'Check-in (escanear QR)',
         ];
     }
 
