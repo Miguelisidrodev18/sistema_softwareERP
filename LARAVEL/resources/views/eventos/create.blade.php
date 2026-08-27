@@ -25,7 +25,7 @@
             </a>
         </div>
 
-        <form method="POST" action="{{ route('eventos.store') }}">
+        <form method="POST" action="{{ route('eventos.store') }}" enctype="multipart/form-data">
             @csrf
 
             @include('eventos._form')

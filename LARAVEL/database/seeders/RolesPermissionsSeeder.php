@@ -108,6 +108,7 @@ class RolesPermissionsSeeder extends Seeder
             'eventos.editar',
             'eventos.eliminar',
             'eventos.ver_todos', // ver los leads capturados por TODOS los usuarios; sin esto, cada quien solo ve los suyos
+            'eventos.checkin', // escanear el QR de los asistentes en la puerta del evento
         ];
 
         foreach ($permissions as $permission) {
@@ -145,7 +146,7 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.gestionar',
             'asistencias.gestionar',
             'reportes_diarios.ver', 'reportes_diarios.crear', 'reportes_diarios.gestionar',
-            'eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.eliminar', 'eventos.ver_todos',
+            'eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.eliminar', 'eventos.ver_todos', 'eventos.checkin',
         ]);
 
         $ventas->syncPermissions([
@@ -159,7 +160,7 @@ class RolesPermissionsSeeder extends Seeder
             'solicitudes.ver', 'solicitudes.crear',
             'asistencias.ver', 'asistencias.registrar',
             'reportes_diarios.ver', 'reportes_diarios.crear',
-            'eventos.ver', 'eventos.crear', 'eventos.editar',
+            'eventos.ver', 'eventos.crear', 'eventos.editar', 'eventos.checkin',
         ]);
 
         $desarrollador->syncPermissions([

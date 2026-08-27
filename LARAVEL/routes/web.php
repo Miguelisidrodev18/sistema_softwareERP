@@ -5,6 +5,7 @@ use App\Http\Controllers\Equipo\ReporteDiarioController;
 use App\Http\Controllers\Reportes\ReporteController;
 use App\Http\Controllers\Solicitudes\SolicitudController;
 use App\Http\Controllers\Asistencias\AsistenciaController;
+use App\Http\Controllers\DocumentoLookupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Planilla\PlanillaController;
@@ -12,6 +13,9 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Caja\CajaController;
 use App\Http\Controllers\Clientes\ClienteController;
 use App\Http\Controllers\Entregas\EntregaController;
+use App\Http\Controllers\Eventos\EventAttendeeController;
+use App\Http\Controllers\Eventos\EventAttendeeImportController;
+use App\Http\Controllers\Eventos\EventCheckinController;
 use App\Http\Controllers\Eventos\EventoController;
 use App\Http\Controllers\Eventos\EventLeadController;
 use App\Http\Controllers\ProfileController;
@@ -26,7 +30,6 @@ use App\Http\Controllers\Leads\ReunionController;
 use App\Http\Controllers\Ventas\CotizacionController;
 use App\Http\Controllers\Ventas\QuotePaymentController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -311,37 +314,13 @@ Route::middleware(['auth'])->get('/api/sunat-api-status', function () {
 });
 
 // ── Proxy consulta DNI / RUC (token queda server-side) ──────────────
-Route::middleware(['auth'])->get('/api/consulta-documento', function (Request $request) {
-    $tipo   = strtoupper($request->input('tipo', ''));
-    $numero = preg_replace('/\D/', '', $request->input('numero', ''));
+Route::middleware(['auth'])->get('/api/consulta-documento', DocumentoLookupController::class)
+    ->name('api.consulta-documento');
 
-    if (!in_array($tipo, ['DNI', 'RUC']) || empty($numero)) {
-        return response()->json(['error' => 'Parámetros inválidos'], 422);
-    }
-
-    $endpoint = $tipo === 'RUC'
-        ? config('services.apis_net_pe.url') . '/ruc?numero=' . $numero
-        : config('services.apis_net_pe.url') . '/dni?numero=' . $numero;
-
-    $token = config('services.apis_net_pe.token');
-
-    $req = Http::timeout(8)->acceptJson();
-    if ($token) {
-        $req = $req->withToken($token);
-    }
-
-    $response = $req->get($endpoint);
-
-    if ($response->status() === 404) {
-        return response()->json(['error' => 'No encontrado'], 404);
-    }
-
-    if ($response->failed()) {
-        return response()->json(['error' => 'Error al consultar la API'], 502);
-    }
-
-    return response()->json($response->json());
-});
+// Misma consulta, accesible sin login (formulario público de inscripción a eventos),
+// limitada por IP para no exponer la cuota de la API externa a cualquiera.
+Route::middleware(['throttle:15,1'])->get('/api/consulta-documento-publico', DocumentoLookupController::class)
+    ->name('api.consulta-documento-publico');
 
 // ── Eventos (ferias / campañas) y sus leads ──────────────────────────
 // IMPORTANTE: rutas con segmento fijo (create) ANTES de wildcards ({evento})
@@ -396,6 +375,49 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:eventos.editar')
         ->name('eventos.leads.convertir');
 
+    // ── Asistentes del evento (registro manual + check-in) ───────────
+    Route::post('/eventos/{evento}/asistentes', [EventAttendeeController::class, 'storeManual'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.asistentes.store');
+
+    Route::get('/eventos/{evento}/asistentes/plantilla', [EventAttendeeImportController::class, 'plantilla'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.asistentes.plantilla');
+
+    Route::get('/eventos/{evento}/asistentes/importar', [EventAttendeeImportController::class, 'crear'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.asistentes.importar');
+
+    Route::post('/eventos/{evento}/asistentes/importar', [EventAttendeeImportController::class, 'importar'])
+        ->middleware('permission:eventos.crear')
+        ->name('eventos.asistentes.importar.store');
+
+    Route::get('/eventos/{evento}/asistentes/exportar', [EventAttendeeController::class, 'exportar'])
+        ->middleware('permission:eventos.ver')
+        ->name('eventos.asistentes.exportar');
+
+    Route::delete('/eventos/{evento}/asistentes/{asistente}', [EventAttendeeController::class, 'destroy'])
+        ->middleware('permission:eventos.eliminar')
+        ->name('eventos.asistentes.destroy');
+
+    Route::get('/eventos/{evento}/checkin', [EventCheckinController::class, 'show'])
+        ->middleware('permission:eventos.checkin')
+        ->name('eventos.checkin');
+
+    Route::post('/eventos/{evento}/checkin/scan', [EventCheckinController::class, 'scan'])
+        ->middleware('permission:eventos.checkin')
+        ->name('eventos.checkin.scan');
+
 });
+
+// ── Inscripción pública a eventos (sin login) ────────────────────────
+Route::get('/eventos/{evento}/inscripcion', [EventAttendeeController::class, 'create'])
+    ->name('eventos.inscripcion.create');
+
+Route::post('/eventos/{evento}/inscripcion', [EventAttendeeController::class, 'store'])
+    ->name('eventos.inscripcion.store');
+
+Route::get('/eventos/{evento}/inscripcion/{asistente:qr_token}', [EventAttendeeController::class, 'ticket'])
+    ->name('eventos.inscripcion.ticket');
 
 require __DIR__.'/auth.php';

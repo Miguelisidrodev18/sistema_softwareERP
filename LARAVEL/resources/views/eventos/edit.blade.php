@@ -27,7 +27,7 @@
             </a>
         </div>
 
-        <form method="POST" action="{{ route('eventos.update', $evento) }}">
+        <form method="POST" action="{{ route('eventos.update', $evento) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 

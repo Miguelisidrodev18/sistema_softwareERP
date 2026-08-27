@@ -18,12 +18,15 @@ class UpdateEventRequest extends FormRequest
         return [
             'nombre'          => ['required', 'string', 'max:200'],
             'descripcion'     => ['nullable', 'string', 'max:2000'],
+            'imagen'          => ['nullable', 'image', 'max:4096'],
+            'delete_imagen'   => ['nullable', 'boolean'],
             'lugar'           => ['nullable', 'string', 'max:255'],
             'direccion'       => ['nullable', 'string', 'max:500'],
             'latitud'         => ['nullable', 'numeric', 'between:-90,90'],
             'longitud'        => ['nullable', 'numeric', 'between:-180,180'],
             'fecha_inicio'    => ['required', 'date'],
             'fecha_fin'       => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
+            'hora_inicio'     => ['nullable', 'date_format:H:i'],
             'estado'          => ['required', Rule::in(Event::ESTADOS)],
             'responsable_id'  => ['nullable', 'exists:users,id'],
         ];

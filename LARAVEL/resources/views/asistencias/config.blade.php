@@ -95,9 +95,7 @@
     </div>
 
     @push('scripts')
-    {{-- Leaflet CSS & JS --}}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @vite(['resources/js/leaflet-setup.js'])
     <script>
     function geoConfig() {
         return {

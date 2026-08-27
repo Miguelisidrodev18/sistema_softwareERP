@@ -7,6 +7,7 @@ use App\Http\Requests\Eventos\StoreEventRequest;
 use App\Http\Requests\Eventos\UpdateEventRequest;
 use App\Models\Event;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class EventoController extends Controller
 {
@@ -35,7 +36,13 @@ class EventoController extends Controller
 
     public function store(StoreEventRequest $request)
     {
-        $evento = Event::create($request->validated() + ['created_by' => auth()->id()]);
+        $data = $request->safe()->except('imagen');
+
+        if ($request->hasFile('imagen')) {
+            $data['imagen'] = $request->file('imagen')->store('eventos', 'public');
+        }
+
+        $evento = Event::create($data + ['created_by' => auth()->id()]);
 
         return redirect()
             ->route('eventos.show', $evento)
@@ -55,6 +62,7 @@ class EventoController extends Controller
                     $q->where('created_by', auth()->id());
                 }
             },
+            'asistentes' => fn ($q) => $q->orderByDesc('created_at'),
         ]);
 
         $kpis = [
@@ -62,6 +70,8 @@ class EventoController extends Controller
             'convertidos'  => $evento->leads->where('estado', 'convertido')->count(),
             'contactados'  => $evento->leads->where('estado', 'contactado')->count(),
             'nuevos'       => $evento->leads->where('estado', 'nuevo')->count(),
+            'total_asistentes' => $evento->asistentes->where('estado', '!=', 'cancelado')->count(),
+            'asistieron'       => $evento->asistentes->where('estado', 'asistio')->count(),
         ];
 
         return view('eventos.show', compact('evento', 'kpis', 'puedeVerTodos'));
@@ -76,7 +86,21 @@ class EventoController extends Controller
 
     public function update(UpdateEventRequest $request, Event $evento)
     {
-        $evento->update($request->validated());
+        $data = $request->safe()->except(['imagen', 'delete_imagen']);
+
+        if ($request->boolean('delete_imagen') && $evento->imagen) {
+            Storage::disk('public')->delete($evento->imagen);
+            $data['imagen'] = null;
+        }
+
+        if ($request->hasFile('imagen')) {
+            if ($evento->imagen) {
+                Storage::disk('public')->delete($evento->imagen);
+            }
+            $data['imagen'] = $request->file('imagen')->store('eventos', 'public');
+        }
+
+        $evento->update($data);
 
         return redirect()
             ->route('eventos.show', $evento)
@@ -85,6 +109,10 @@ class EventoController extends Controller
 
     public function destroy(Event $evento)
     {
+        if ($evento->imagen) {
+            Storage::disk('public')->delete($evento->imagen);
+        }
+
         $evento->delete();
 
         return redirect()
